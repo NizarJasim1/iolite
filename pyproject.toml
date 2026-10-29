@@ -1,0 +1,52 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "iolite"
+version = "1.29.0"
+description = "IOLITE: maps and ranks the authorization attack surface of web APIs from legally captured material, and emits test specs for ONYX"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "PolyForm-Noncommercial-1.0.0" }
+authors = [{ name = "Nizar Jasim Mohammed Al-Zubaidi" }]
+keywords = ["security", "authorization", "attack-surface", "recon", "api-security", "har", "graphql", "openapi", "bug-bounty"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Information Technology",
+    "License :: Other/Proprietary License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Security",
+]
+# The engine core is PURE STDLIB and runs fully offline on captured inputs.
+# Optional extras add LIVE acquisition against an authorised target only.
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/NizarJasim1/iolite"
+Issues = "https://github.com/NizarJasim1/iolite/issues"
+Changelog = "https://github.com/NizarJasim1/iolite/blob/main/CHANGELOG.md"
+
+[project.optional-dependencies]
+live = ["requests>=2.31"]          # live passive fetch (CT logs, wayback, JS download)
+replay = ["playwright>=1.44"]      # headless "record-once, replay-as-N-principals"
+
+[project.scripts]
+iolite = "iolite.cli:main"
+
+[tool.setuptools]
+packages = ["iolite", "iolite.reason", "iolite.intent", "iolite.intent.targets"]
+
+[tool.setuptools.package-data]
+iolite = ["assets/*.js"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+extend-exclude = ["docs/notes"]
+
+[tool.ruff.lint]
+select = ["E9", "F", "B"]

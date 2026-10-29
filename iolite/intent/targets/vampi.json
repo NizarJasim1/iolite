@@ -1,0 +1,27 @@
+{
+  "name": "VAmPI (OWASP, independent target)",
+  "base_url": "http://127.0.0.1:5000",
+  "host": "127.0.0.1:5000",
+  "min_interval": 0.05,
+  "auth": {
+    "register": "/users/v1/register",
+    "login": "/users/v1/login",
+    "reg_body": {"username": "{{user}}", "password": "{{pass}}", "email": "{{user}}@onyx.local"},
+    "login_body": {"username": "{{user}}", "password": "{{pass}}"},
+    "token_field": "auth_token",
+    "header": "Authorization",
+    "scheme": "Bearer "
+  },
+  "principals": {
+    "A": {"user": "onyx_alice", "pass": "pwAlice1"},
+    "B": {"user": "onyx_bob", "pass": "pwBob1"}
+  },
+  "kinds": [
+    {
+      "name": "books",
+      "create": {"method": "POST", "path": "/books/v1",
+                 "body": {"book_title": "{{title}}", "secret": "{{secret}}"}},
+      "read":   {"method": "GET", "path": "/books/v1/{{title}}"}
+    }
+  ]
+}

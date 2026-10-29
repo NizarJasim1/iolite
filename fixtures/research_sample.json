@@ -1,0 +1,74 @@
+[
+  {
+    "name": "Acme Cloud Platform",
+    "handle": "acme_cloud",
+    "url": "https://hackerone.com/acme_cloud",
+    "website": "https://cloud.acme.com",
+    "offers_bounties": true,
+    "submission_state": "open",
+    "managed_program": true,
+    "average_time_to_first_program_response": 3.0,
+    "average_time_to_bounty_awarded": 120.0,
+    "average_time_to_report_resolved": 400.0,
+    "response_efficiency_percentage": 96.0,
+    "targets": {
+      "in_scope": [
+        {"asset_identifier": "*.acme.com", "asset_type": "WILDCARD", "eligible_for_bounty": true, "eligible_for_submission": true, "max_severity": "critical", "confidentiality_requirement": "high"},
+        {"asset_identifier": "com.acme.app", "asset_type": "GOOGLE_PLAY_APP_ID", "eligible_for_bounty": true, "eligible_for_submission": true, "max_severity": "critical", "confidentiality_requirement": "high"},
+        {"asset_identifier": "https://api.acme.com/graphql", "asset_type": "URL", "eligible_for_bounty": true, "eligible_for_submission": true, "max_severity": "high", "confidentiality_requirement": "high", "instruction": "IDOR and broken access control findings are highly encouraged on the tenant API."},
+        {"asset_identifier": "app.acme.com", "asset_type": "URL", "eligible_for_bounty": true, "eligible_for_submission": true, "max_severity": "high", "confidentiality_requirement": "medium"}
+      ],
+      "out_of_scope": [
+        {"asset_identifier": "internal.acme.com", "asset_type": "URL"}
+      ]
+    }
+  },
+  {
+    "name": "Delta Wallet",
+    "handle": "delta_wallet",
+    "url": "https://hackerone.com/delta_wallet",
+    "website": "https://deltawallet.io",
+    "offers_bounties": true,
+    "submission_state": "open",
+    "managed_program": false,
+    "average_time_to_first_program_response": 40.0,
+    "average_time_to_bounty_awarded": 2400.0,
+    "response_efficiency_percentage": 62.0,
+    "targets": {
+      "in_scope": [
+        {"asset_identifier": "com.delta.wallet", "asset_type": "APPLE_STORE_APP_ID", "eligible_for_bounty": true, "eligible_for_submission": true, "max_severity": "critical", "confidentiality_requirement": "high"},
+        {"asset_identifier": "api.deltawallet.io", "asset_type": "API", "eligible_for_bounty": true, "eligible_for_submission": true, "max_severity": "high", "confidentiality_requirement": "high"}
+      ],
+      "out_of_scope": []
+    }
+  },
+  {
+    "name": "Bob Personal Blog",
+    "handle": "bob_blog",
+    "url": "https://hackerone.com/bob_blog",
+    "website": "https://blog.bob.dev",
+    "offers_bounties": true,
+    "submission_state": "open",
+    "response_efficiency_percentage": 80.0,
+    "targets": {
+      "in_scope": [
+        {"asset_identifier": "blog.bob.dev", "asset_type": "URL", "eligible_for_bounty": true, "eligible_for_submission": true, "max_severity": "medium", "confidentiality_requirement": "low"}
+      ],
+      "out_of_scope": []
+    }
+  },
+  {
+    "name": "Charlie Disclosure Only",
+    "handle": "charlie_vdp",
+    "url": "https://hackerone.com/charlie_vdp",
+    "website": "https://charlie.example",
+    "offers_bounties": false,
+    "submission_state": "open",
+    "targets": {
+      "in_scope": [
+        {"asset_identifier": "*.charlie.example", "asset_type": "WILDCARD", "eligible_for_bounty": false, "eligible_for_submission": true, "max_severity": "high"}
+      ],
+      "out_of_scope": []
+    }
+  }
+]

@@ -1,0 +1,14 @@
+WALL-2 SCALE (quotient + best-first budget + CEGAR)
+============================================================================
+  raw candidate space (principal×instance×field) : 480,000
+  quotient space (role×type×field-class)         : 36
+  reduction factor                               : 13,333x
+  confirmations spent (budget 40)                : 26
+  leads (ranked, not confirmed — graceful)       : 0
+  findings:
+     user->vault    [class-level]  witness=rep#1
+     anon->order    [cohort-level (uniformity refuted)]  witness=inst#210 (id%7==0)
+============================================================================
+PROVEN: 480,000 raw candidates reduced to 36 (13,333x);
+        class-level AND cohort-level authz bugs both caught within a 40-confirm budget;
+        soundness preserved, coverage degrades by VALUE not by silent truncation.

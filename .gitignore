@@ -1,0 +1,17 @@
+__pycache__/
+*.pyc
+demo_spec.json
+demo_surface.md
+spec.json
+surface.md
+engagement.json
+*.egg-info/
+.venv/
+*.har
+!fixtures/*.har
+reports/
+findings/
+captures/
+.DS_Store
+.ruff_cache/
+.mypy_cache/

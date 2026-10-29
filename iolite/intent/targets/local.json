@@ -1,0 +1,18 @@
+{
+  "name": "local vuln_app (offline regression)",
+  "base_url": "http://127.0.0.1:8899",
+  "host": "127.0.0.1:8899",
+  "auth": {"header": "Authorization", "scheme": "Bearer "},
+  "principals": {
+    "A": {"headers": {"Authorization": "Bearer tokA"}},
+    "B": {"headers": {"Authorization": "Bearer tokB"}}
+  },
+  "kinds": [
+    {"name": "notes",
+     "create": {"method": "POST", "path": "/notes", "body": {"content": "{{secret}}", "secret": "{{secret}}"}},
+     "read":   {"method": "GET", "path": "/notes/{{id}}"}},
+    {"name": "cards",
+     "create": {"method": "POST", "path": "/cards", "body": {"content": "{{secret}}", "secret": "{{secret}}"}},
+     "read":   {"method": "GET", "path": "/cards/{{id}}"}}
+  ]
+}

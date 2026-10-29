@@ -1,0 +1,12 @@
+{
+  "version": 3,
+  "file": "app.current.js",
+  "sources": ["webpack:///src/admin.js", "webpack:///src/api.js", "webpack:///node_modules/vendor/x.js"],
+  "sourcesContent": [
+    "// src/admin.js — privileged surface (recovered from sourcemap)\nexport function adminPanel(user) {\n  if (user.isAdmin || user.role === 'superuser') {\n    http.put('/api/v1/admin/users/:userId/role', { role: user.newRole });\n    http.delete('/api/v1/admin/orders/:orderId');\n    http.get('/api/v1/admin/reports/:reportId');\n  }\n}\nexport const featureFlagAdminBulkDelete = true;\nexport const enableInternalBilling = false;\n",
+    "// src/api.js\nexport function loadOrder(id) { return http.get('/api/v1/orders/:orderId'); }\nexport function refund(id) { return http.post('/api/v1/orders/:orderId/refund'); }\nexport function pay(id) { return http.post('/api/v1/payments/:paymentId/settle'); }\n",
+    "// vendor noise, should be ignored\nvar _x = function(){ return fetch('/cdn/vendor/asset.js'); };\n"
+  ],
+  "names": [],
+  "mappings": ""
+}

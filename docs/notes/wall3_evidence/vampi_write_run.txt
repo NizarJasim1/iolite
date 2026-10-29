@@ -1,0 +1,17 @@
+WALL-3 HTTP SAGA vs VAmPI (independent target)
+============================================================================
+  [gate0 screen] register_admin_massassign: passed
+  [gate1 rehearse] create↔delete reversible, no external effect: True
+  [confirm] debug read-back: {'attacker_admin': True, 'control_admin': False}
+  [WAL on disk now] pending entries = ['w3_att_e98c15', 'w3_ctl_e98c15']
+----------------------------------------------------------------------------
+  VERDICT: FINDING  — BOPLA-write / privilege-escalation (mass-assignment at register)
+  PoC: POST /users/v1/register with "admin": true  -> self-provisioned admin
+  Δstate: attacker.admin=True vs control.admin=False (debug read-back)
+  net-zero: test users remaining = []  (expect [])
+----------------------------------------------------------------------------
+  [durability] orphaned w3_orph_e98c15 + WAL persisted; simulating crash (no cleanup)
+  [recovery] replayed 1 pending undo(s) from disk; orphan gone: True
+============================================================================
+PASS: real write-side authz bug confirmed on INDEPENDENT code (VAmPI),
+      via non-destructive read-back, durable-WAL-protected, net-zero harm.

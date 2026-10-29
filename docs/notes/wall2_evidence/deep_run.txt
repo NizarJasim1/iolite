@@ -1,0 +1,18 @@
+WALL-2 DEEP — learned partition + CEGAR, and EV-bandit vs static budget
+====================================================================================
+(A) instances=5,000  ->  learned classes=5  (reduction 1,000x)
+    intra-type authz INCONSISTENCY auto-flagged (a finding): ['order']
+
+(B) confirmation budget = 40 probes, 8 service-classes (2 broken, 6 secure)
+    UNIFORM  : bugs=10  EV_captured=$16,500
+    EV-BANDIT: bugs=13  EV_captured=$24,000   (+45% bounty per unit budget)
+
+(F) EV worklist (top services by learned yield) + coverage:
+    svc_vault(BROKEN)    drawn=11/20  bugs=8  yield=73%  $captured=20,000
+    svc_orders(BROKEN)   drawn= 5/20  bugs=5  yield=100%  $captured=4,000
+    svc_profile          drawn= 4/20  bugs=0  yield=0%  $captured=0
+    svc_report           drawn= 4/20  bugs=0  yield=0%  $captured=0
+    coverage: 40/160 probes confirmed (25%); rest = ranked leads
+====================================================================================
+PROVEN: partition LEARNED (+cohort inconsistency auto-flagged); EV-bandit beats
+        uniform by $7,500 at equal budget — budget flows to the money.

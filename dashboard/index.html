@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>IOLITE</title>
+<style>
+:root{
+  /* IOLITE identity: pleochroic violet→indigo→cyan on deep indigo-black, faceted */
+  --bg:#06060f;--bg2:#0a0a18;--pane:#0c0c1c;--pane2:#101024;
+  --line:#1c1c38;--line2:#2c2c52;
+  --ink:#e9eaf7;--dim:#7d80b0;--dim2:#4a4c78;
+  --v:#a855f7;--i:#6366f1;--c:#22d3ee;--v-d:#3b1a6b;--i-d:#1e2472;
+  --acc:#818cf8;--acc-l:#b7c0ff;
+  --grad:linear-gradient(120deg,var(--v),var(--i) 55%,var(--c));
+  --grad-soft:linear-gradient(120deg,rgba(168,85,247,.9),rgba(99,102,241,.9),rgba(34,211,238,.9));
+  --ember:#ff8a2b;--amber:#f5b53d;--green:#43c98a;--blue:#5fb0e6;
+  --mono:"JetBrains Mono","SF Mono","Roboto Mono",ui-monospace,Menlo,Consolas,monospace;
+  --disp:"Michroma","Eurostile","Bank Gothic",Oswald,system-ui,sans-serif;
+  --sans:system-ui,-apple-system,"Segoe UI",sans-serif;
+  --cut:13px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font-family:var(--mono);font-size:12.5px}
+.df{font-family:var(--disp);letter-spacing:2px}
+#vig,#facet{position:fixed;inset:0;pointer-events:none;z-index:80}
+#vig{background:radial-gradient(120% 110% at 50% 20%,transparent 52%,rgba(3,3,10,.72) 100%),radial-gradient(60% 45% at 82% -8%,rgba(99,102,241,.10),transparent 60%),radial-gradient(50% 40% at 10% 108%,rgba(34,211,238,.06),transparent 60%)}
+/* faint faceted (triangular) tessellation — the "cut gem" texture, not CRT scanlines */
+#facet{opacity:.5;background-image:
+  repeating-linear-gradient(60deg,rgba(129,140,248,.045) 0 1px,transparent 1px 46px),
+  repeating-linear-gradient(-60deg,rgba(129,140,248,.045) 0 1px,transparent 1px 46px);mix-blend-mode:screen}
+.flash{position:fixed;inset:0;z-index:82;pointer-events:none;box-shadow:inset 0 0 150px rgba(129,140,248,0);transition:box-shadow .12s}
+.flash.hit{box-shadow:inset 0 0 190px rgba(129,140,248,.4)}
+
+.app{position:relative;z-index:1;display:grid;height:100vh;gap:9px;padding:9px;
+  grid-template-columns:244px 1fr 340px;grid-template-rows:58px 1fr 74px;
+  grid-template-areas:"top top top" "left stage right" "bottom bottom bottom"}
+
+/* PANEL — faceted: two opposite corners cut like a cut gem, gradient top edge */
+.panel{background:linear-gradient(180deg,rgba(16,16,36,.94),rgba(10,10,24,.96));border:1px solid var(--line);position:relative;
+  clip-path:polygon(0 0,calc(100% - var(--cut)) 0,100% var(--cut),100% 100%,var(--cut) 100%,0 calc(100% - var(--cut)))}
+.panel::before{content:"";position:absolute;top:0;left:0;right:var(--cut);height:1px;background:var(--grad);opacity:.6;z-index:3}
+.ph{display:flex;align-items:center;gap:9px;padding:7px 12px;border-bottom:1px solid var(--line);font-size:9.5px;letter-spacing:2px;color:var(--dim);text-transform:uppercase;user-select:none}
+.ph .fx{width:8px;height:8px;background:var(--grad);clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%);box-shadow:0 0 8px rgba(129,140,248,.6);animation:pulse 2.2s infinite}
+.ph .x{margin-left:auto;color:var(--ink);font-size:11px;letter-spacing:0}
+@keyframes pulse{0%,100%{opacity:1;transform:rotate(0)}50%{opacity:.4;transform:rotate(90deg)}}
+
+.top{grid-area:top;display:flex;align-items:center;gap:16px;padding:0 16px;background:linear-gradient(180deg,#0d0d20,#080814);border:1px solid var(--line);
+  clip-path:polygon(0 0,100% 0,100% calc(100% - var(--cut)),calc(100% - var(--cut)) 100%,var(--cut) 100%,0 calc(100% - var(--cut)))}
+.gem{width:30px;height:30px;position:relative;flex:none}
+.gem svg{width:100%;height:100%;filter:drop-shadow(0 0 6px rgba(129,140,248,.5))}
+.wm{display:flex;align-items:center;gap:11px}
+.wm .lk{font-family:var(--disp);font-weight:700;font-size:23px;letter-spacing:7px;line-height:1;
+  background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.wm .tag{font-size:7.5px;color:var(--dim);letter-spacing:3px;line-height:1.4}
+.tabs{display:flex;margin-left:4px}
+.tab{font-family:var(--disp);font-weight:700;letter-spacing:2px;font-size:11px;padding:8px 15px;cursor:pointer;color:var(--dim);display:flex;align-items:center;gap:7px;transition:.13s;border:1px solid var(--line2);border-right:none;
+  clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%)}
+.tab:last-child{border-right:1px solid var(--line2)}
+.tab:hover{color:var(--ink)}
+.tab.on{color:#0a0a18;background:var(--grad)}
+.tab .g{width:6px;height:6px;background:var(--dim2);clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%)}
+.tab.on .g{background:#0a0a18}
+.tab[data-tab="onyx"] .g{background:var(--green)}
+.tele{display:flex;gap:16px;font-size:10px;color:var(--dim2)}.tele b{color:var(--dim);font-weight:500}.tele em{color:var(--ink);font-style:normal}
+.top .r{margin-left:auto;display:flex;align-items:center;gap:11px}
+.statpill{display:flex;align-items:center;gap:8px;font-size:10px;color:var(--dim);border:1px solid var(--line2);padding:5px 11px;letter-spacing:1px;
+  clip-path:polygon(7px 0,100% 0,100% calc(100% - 7px),calc(100% - 7px) 100%,0 100%,0 7px)}
+.led{width:7px;height:7px;background:var(--grad);clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%);box-shadow:0 0 8px rgba(129,140,248,.7);animation:pulse 1.8s infinite}
+.led.off{background:var(--dim2);box-shadow:none;animation:none}
+.iconbtn{width:30px;height:30px;display:grid;place-items:center;background:none;border:1px solid var(--line2);color:var(--dim);cursor:pointer;font-size:13px;
+  clip-path:polygon(6px 0,100% 0,100% calc(100% - 6px),calc(100% - 6px) 100%,0 100%,0 6px)}
+.iconbtn:hover{color:var(--acc-l);border-color:var(--acc)}
+.run{font-family:var(--disp);font-weight:700;letter-spacing:3px;font-size:13px;cursor:pointer;color:#0a0a18;background:var(--grad);border:none;padding:11px 18px 11px 30px;position:relative;text-transform:uppercase;
+  clip-path:polygon(11px 0,100% 0,calc(100% - 11px) 100%,0 100%);box-shadow:0 0 22px rgba(129,140,248,.4);transition:.14s}
+.run::after{content:"◈";position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:12px}
+.run:hover{box-shadow:0 0 34px rgba(129,140,248,.7)}.run:active{transform:translateY(1px)}.run[disabled]{opacity:.5;cursor:wait}
+
+.left{grid-area:left;display:flex;flex-direction:column;gap:9px;min-height:0}
+.left .panel{flex:0 0 auto}.left .grow{flex:1 1 auto;display:flex;flex-direction:column;min-height:0}
+.modeset{display:flex;padding:8px 10px;gap:5px}
+.mtab{flex:1;text-align:center;font-size:9px;letter-spacing:1px;padding:7px 2px;cursor:pointer;color:var(--dim);border:1px solid var(--line2);transition:.12s;
+  clip-path:polygon(5px 0,100% 0,calc(100% - 5px) 100%,0 100%)}
+.mtab:hover{color:var(--ink)}.mtab.on{background:var(--grad);color:#0a0a18;font-weight:700;border-color:transparent}
+.spk{width:100%;height:44px;display:block}
+.bars{padding:9px 11px;display:flex;flex-direction:column;gap:7px;overflow:auto}
+.bar{font-size:10px}.bar .bl{display:flex;justify-content:space-between;color:var(--dim);margin-bottom:3px}.bar .bl b{color:var(--ink)}
+.bar .bt{height:5px;background:var(--line);position:relative;overflow:hidden;transform:skewX(-20deg)}
+.bar .bf{position:absolute;left:0;top:0;height:100%;width:0;transition:width .6s cubic-bezier(.2,.8,.2,1);background:var(--grad)}
+.bar.A .bf{background:var(--blue)}.bar.B .bf{background:var(--ember)}
+
+.stage{grid-area:stage;padding:0}
+.view{position:absolute;inset:0;opacity:0;pointer-events:none;transition:opacity .22s}.view.on{opacity:1;pointer-events:auto}
+.fig{position:absolute;top:11px;left:15px;z-index:6;font-size:10px;letter-spacing:2px;color:var(--dim)}.fig b{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;font-weight:700}
+.legend{position:absolute;top:11px;right:15px;z-index:6;display:flex;gap:14px;font-size:9px;color:var(--dim)}.legend i{display:inline-block;width:8px;height:8px;clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%);vertical-align:middle;margin-right:5px}
+.coord{position:absolute;left:15px;bottom:28px;z-index:6;font-size:9.5px;color:var(--dim2);letter-spacing:1px}.coord b{color:var(--acc-l)}
+#cv{display:block;width:100%;height:100%}
+.ticker{position:absolute;left:0;right:0;bottom:0;height:20px;overflow:hidden;z-index:5;border-top:1px solid var(--line);background:rgba(8,8,20,.85);display:flex;align-items:center}
+.tk{display:inline-block;white-space:nowrap;font-size:9px;color:var(--dim2);animation:marq 28s linear infinite;will-change:transform}.tk em{color:var(--acc-l);font-style:normal}
+@keyframes marq{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+#stream,#diag{position:absolute;inset:0;overflow:auto;padding:40px 15px 26px}
+.crow{display:grid;grid-template-columns:42px 1fr auto;gap:12px;align-items:center;padding:10px 12px;border-bottom:1px solid var(--line);cursor:pointer;transition:.14s;animation:drop .3s both}
+.crow:hover{background:rgba(129,140,248,.05)}
+.crow .rk{font-family:var(--disp);font-weight:700;font-size:17px;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.crow .ep{font-size:12px}.crow .meta{font-size:9.5px;color:var(--dim);margin-top:2px;font-family:var(--sans)}
+.crow .chip{font-size:9px;padding:2px 7px;border:1px solid var(--line2);color:var(--dim);clip-path:polygon(4px 0,100% 0,100% 100%,0 100%,0 4px)}
+.crow .bar2{grid-column:1/-1;height:3px;background:var(--line);margin-top:7px;overflow:hidden;transform:skewX(-20deg)}.crow .bar2 i{display:block;height:100%;background:var(--grad);width:0;transition:width .5s}
+.diagline{padding:8px 4px;border-bottom:1px solid var(--line);font-size:11px;display:flex;justify-content:space-between;color:var(--dim)}.diagline b{color:var(--ink)}
+
+.right{grid-area:right;display:flex;flex-direction:column;gap:9px;min-height:0}
+.right .triage{flex:1 1 58%;display:flex;flex-direction:column;min-height:0}.right .c2{flex:1 1 42%;display:flex;flex-direction:column;min-height:0}
+.sevrow{display:flex;gap:6px;flex-wrap:wrap;padding:7px 11px;border-bottom:1px solid var(--line);min-height:30px}
+.sv{font-size:9px;padding:2px 8px;border:1px solid var(--line2);color:var(--dim);cursor:pointer;letter-spacing:.5px;clip-path:polygon(5px 0,100% 0,100% 100%,0 100%,0 5px)}
+.sv.on{background:var(--grad);color:#0a0a18;border-color:transparent}
+.tlist{flex:1;overflow:auto;padding:9px}
+.trow{padding:8px 10px 8px 12px;margin-bottom:7px;cursor:pointer;background:rgba(129,140,248,.02);transition:.13s;animation:drop .3s both;position:relative;
+  clip-path:polygon(0 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%)}
+.trow::before{content:"";position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--dim2)}
+@keyframes drop{from{opacity:0;transform:translateX(12px)}to{opacity:1;transform:none}}
+.trow:hover{background:rgba(129,140,248,.06)}
+.trow.crit::before{background:var(--v)}.trow.high::before{background:var(--i)}.trow.med::before{background:var(--c)}.trow.low::before{background:var(--dim)}
+.trow .rt{font-family:var(--sans);font-size:11.5px;font-weight:600;line-height:1.25}.trow .rm{font-size:9px;color:var(--dim);margin-top:3px;display:flex;justify-content:space-between}
+.trow .rf{font-size:9.5px;margin-top:4px;color:var(--dim)}
+.c2log{flex:1;overflow:auto;padding:8px 11px;font-size:10px;line-height:1.65}.c2log .l{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.c2log .t{color:var(--dim2)}.c2log .ok{color:var(--green)}.c2log .wrn{color:var(--amber)}.c2log .inf{color:var(--dim)}.c2log .hi{color:var(--ink)}.c2log .ac{color:var(--acc-l)}
+
+.bottom{grid-area:bottom;display:flex;align-items:center;gap:16px;padding:0 18px}
+.rlabel{font-family:var(--disp);font-weight:700;letter-spacing:3px;font-size:11px;color:var(--dim)}
+.track{flex:1;height:46px;position:relative}.dimline{position:absolute;left:0;right:0;top:50%;height:1px;background:var(--line2)}
+.tick{position:absolute;top:50%;width:12px;height:12px;transform:translate(-50%,-50%);clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%);border:1.4px solid var(--dim2);background:var(--bg);transition:.15s}
+.tick.done{border-color:transparent;background:var(--grad);box-shadow:0 0 11px rgba(129,140,248,.7)}
+.station{position:absolute;top:calc(50% + 13px);transform:translateX(-50%);font-size:7.5px;color:var(--dim2);white-space:nowrap}
+.playhead{position:absolute;top:3px;bottom:3px;width:1px;background:var(--acc-l);box-shadow:0 0 8px var(--acc);left:0;transition:left .3s;pointer-events:none}
+.now{font-size:9.5px;color:var(--dim);min-width:150px;text-align:right}
+
+#view-onyx{position:absolute;inset:9px;z-index:60;display:none;flex-direction:column;gap:7px}
+#view-onyx.show{display:flex}
+#onyxBar{display:flex;align-items:center;gap:10px;font-size:10px;color:var(--dim);letter-spacing:1px}
+#onyxFrame{flex:1;width:100%;border:1px solid var(--line);background:var(--bg);display:none}
+#onyxFallback{flex:1;display:grid;place-items:center;color:var(--dim);text-align:center;padding:30px}
+#view-onyx.full{position:fixed;inset:0;z-index:9999}
+.hand{position:fixed;left:11px;bottom:11px;z-index:10000;display:none}.hand.show{display:block}
+@media (max-width:900px){.app{grid-template-columns:1fr;grid-template-rows:auto auto 340px auto auto;grid-template-areas:"top" "left" "stage" "right" "bottom"}}
+
+/* ═══════════ ADDED: interactivity + physics (IDENTITY UNCHANGED) ═══════════ */
+/* B2 — wordmark pleochroic sheen */
+.wm .lk{background-size:220% 100%;animation:ioSheen 7s linear infinite}
+@keyframes ioSheen{0%{background-position:0% 50%}100%{background-position:220% 50%}}
+/* B1 — gem idle hover + click spin */
+.gem{cursor:pointer}
+.gem svg{transition:filter .25s}
+.gem:hover svg{filter:drop-shadow(0 0 11px rgba(129,140,248,.9))}
+.gem.spin{animation:gemSpin .9s cubic-bezier(.2,.8,.2,1)}
+@keyframes gemSpin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+/* B5 — press feedback + ripple host (positioned above the slide indicator) */
+.run,.iconbtn,.tab,.mtab,.sv{position:relative;overflow:hidden;z-index:1}
+.run:active,.iconbtn:active,.tab:active,.mtab:active,.sv:active{transform:translateY(1px) scale(.985)}
+.run.charge{animation:ioCharge 1s ease-in-out infinite}
+@keyframes ioCharge{0%,100%{box-shadow:0 0 22px rgba(129,140,248,.4)}50%{box-shadow:0 0 40px rgba(129,140,248,.9)}}
+.rip{position:absolute;width:14px;height:14px;border-radius:50%;pointer-events:none;z-index:4;
+  background:radial-gradient(circle,rgba(129,140,248,.55),transparent 70%);transform:translate(-50%,-50%) scale(0);animation:ioRip .5s ease-out forwards}
+@keyframes ioRip{to{transform:translate(-50%,-50%) scale(8);opacity:0}}
+/* B3 — sliding physical indicator behind active tab/mode/sev */
+.tabs,.modeset,.sevrow{position:relative}
+.slide-ind{position:absolute;pointer-events:none;z-index:0;background:var(--grad);opacity:.18;
+  box-shadow:0 0 14px rgba(129,140,248,.5);transition:left .28s cubic-bezier(.2,.9,.2,1),top .28s,width .28s,height .28s,opacity .2s}
+/* B4 — tabular numerals for animated counters */
+.tele em,.statpill em,.ph .x{font-variant-numeric:tabular-nums}
+/* C2 — map marker tooltip + grab cursor */
+#mapTip{position:absolute;z-index:20;pointer-events:none;display:none;background:rgba(10,10,24,.97);border:1px solid var(--line2);color:var(--ink);font-size:10px;line-height:1.5;padding:5px 8px;max-width:250px;
+  clip-path:polygon(5px 0,100% 0,100% calc(100% - 5px),calc(100% - 5px) 100%,0 100%,0 5px)}
+#mapTip b{color:var(--acc-l)} #mapTip .rk{color:var(--v)}
+#cv{cursor:grab} #cv.grab{cursor:grabbing}
+/* C3 — triage row selected (cross-linked to map) */
+.trow.sel{background:rgba(129,140,248,.13)} .trow.sel::before{box-shadow:0 0 10px rgba(129,140,248,.85)}
+/* C5 — effect/principal bar hover */
+.bar{transition:transform .12s} .bar:hover{transform:translateX(2px)} .bar:hover .bf{filter:brightness(1.3)}
+/* C6 — pipeline tick hover + completion ping */
+.tick{cursor:pointer} .tick:hover{border-color:var(--acc);box-shadow:0 0 8px rgba(129,140,248,.6)}
+.tick.ping{animation:ioPing .5s ease-out}
+@keyframes ioPing{0%{box-shadow:0 0 0 0 rgba(129,140,248,.7)}100%{box-shadow:0 0 0 14px rgba(129,140,248,0)}}
+/* D1 — background parallax layers */
+#vig,#facet{transition:transform .18s ease-out;will-change:transform}
+/* E2 — working light theme (toggled by ◐; dark stays default identity) */
+html[data-theme="light"]{--bg:#eef0fb;--bg2:#e6e8f7;--pane:#f7f8fe;--pane2:#edeffb;--line:#cdd2ee;--line2:#aab1e0;--ink:#15162a;--dim:#565a82;--dim2:#9298c2}
+html[data-theme="light"] body{background:var(--bg)}
+html[data-theme="light"] .panel{background:linear-gradient(180deg,rgba(255,255,255,.97),rgba(238,240,251,.97))}
+html[data-theme="light"] .top{background:linear-gradient(180deg,#ffffff,#eef0fb)}
+html[data-theme="light"] .tab.on,html[data-theme="light"] .mtab.on,html[data-theme="light"] .sv.on{color:#f7f8fe}
+/* E3 — respect reduced motion (only the ADDED motion; snaps to final) */
+@media(prefers-reduced-motion:reduce){
+  .wm .lk,.gem.spin,.run.charge{animation:none!important}
+  .slide-ind{transition:none!important} .rip{display:none!important}
+  #vig,#facet{transition:none!important;transform:none!important}
+}
+</style>
+</head>
+<body>
+<div id="vig"></div><div id="facet"></div><div class="flash" id="flash"></div>
+<div class="app">
+  <div class="top">
+    <span class="gem"><svg viewBox="0 0 40 40"><defs><linearGradient id="gg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#a855f7"/><stop offset=".55" stop-color="#6366f1"/><stop offset="1" stop-color="#22d3ee"/></linearGradient></defs><path d="M20 2 L34 13 L28 36 L12 36 L6 13 Z" fill="none" stroke="url(#gg)" stroke-width="1.6"/><path d="M6 13 L20 18 L34 13 M20 18 L20 36 M20 18 L12 36 M20 18 L28 36" fill="none" stroke="url(#gg)" stroke-width="1" opacity=".7"/></svg></span>
+    <div class="wm"><span class="lk">IOLITE</span><span class="tag">SURFACE<br>CARTOGRAPHY</span></div>
+    <div class="tabs">
+      <div class="tab on" data-tab="iolite"><span class="g"></span>IOLITE</div>
+      <div class="tab" data-tab="onyx"><span class="g"></span>ONYX</div>
+    </div>
+    <div class="tele">
+      <span><b>SES</b> <em id="tSes">0x0000</em></span>
+      <span><b>ENDPOINTS</b> <em id="tEp">0</em></span>
+      <span><b>PROBES</b> <em id="tPb">0</em></span>
+      <span><b>UTC</b> <em id="tClock">--:--:--</em></span>
+    </div>
+    <div class="r">
+      <div class="statpill"><span class="led off" id="onyxLed"></span><span id="onyxTxt">ONYX …</span></div>
+      <div class="statpill"><b>RECALL</b>&nbsp;<em id="tRecall" style="color:var(--ink)">1.000</em></div>
+      <button class="iconbtn" id="themeBtn" title="theme">◐</button>
+      <label class="iconbtn" for="specfile" title="load spec.json">⤒</label>
+      <input type="file" id="specfile" accept=".json,application/json" style="display:none">
+      <button class="run df" id="runBtn">SURVEY</button>
+    </div>
+  </div>
+
+  <div class="left" id="view-left">
+    <div class="panel">
+      <div class="ph"><span class="fx"></span>VIEW</div>
+      <div class="modeset">
+        <div class="mtab on" data-view="scope">SCOPE</div>
+        <div class="mtab" data-view="stream">STREAM</div>
+        <div class="mtab" data-view="diag">DIAG</div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="ph"><span class="fx"></span>THROUGHPUT<span class="x" id="thNum">0.0/s</span></div>
+      <canvas class="spk" id="spk" width="220" height="44"></canvas>
+    </div>
+    <div class="panel">
+      <div class="ph"><span class="fx"></span>EFFECT SPECTRUM</div>
+      <div class="bars" id="effBars"></div>
+    </div>
+    <div class="panel grow">
+      <div class="ph"><span class="fx"></span>PRINCIPAL LOAD</div>
+      <div class="bars" id="prinBars" style="flex:1"></div>
+    </div>
+  </div>
+
+  <div class="stage panel">
+    <div class="view on" id="v-scope">
+      <div class="fig">FIG.01 — SURVEY <b>SCOPE</b></div>
+      <div class="legend"><span><i style="background:var(--v)"></i>crit</span><span><i style="background:var(--i)"></i>high</span><span><i style="background:var(--c)"></i>med</span><span><i style="background:var(--dim)"></i>low</span></div>
+      <canvas id="cv"></canvas>
+      <div class="coord" id="coord">SURFACE <b>IDLE</b> · press SURVEY</div>
+      <div class="ticker"><span class="tk" id="tk">// standby</span></div>
+    </div>
+    <div class="view" id="v-stream"><div id="stream"></div></div>
+    <div class="view" id="v-diag"><div id="diag"></div></div>
+    <div id="view-onyx">
+      <div id="onyxBar"><b style="color:var(--acc-l)">ONYX</b> control center (embedded)
+        <button class="iconbtn" id="fsBtn" title="fullscreen" style="margin-left:auto">⛶</button>
+        <button class="iconbtn" id="reloadOnyx" title="reload">⟳</button></div>
+      <div id="onyxFallback">launching ONYX…</div>
+      <iframe id="onyxFrame" title="ONYX control center"></iframe>
+    </div>
+  </div>
+
+  <div class="right" id="view-right">
+    <div class="panel triage">
+      <div class="ph"><span class="fx"></span>TRIAGE LEDGER<span class="x" id="trgN">00</span></div>
+      <div class="sevrow" id="sevrow">
+        <span class="sv on" data-sev="all">ALL</span>
+        <span class="sv" data-sev="crit">CRIT</span>
+        <span class="sv" data-sev="high">HIGH</span>
+        <span class="sv" data-sev="med">MED</span>
+        <span class="sv" data-sev="low">LOW</span>
+      </div>
+      <div class="tlist" id="tlist"><div style="padding:16px;color:var(--dim2);font-size:10.5px">press <b style="color:var(--acc-l)">SURVEY</b> to map the surface</div></div>
+    </div>
+    <div class="panel c2">
+      <div class="ph"><span class="fx"></span>ACQUISITION LOG</div>
+      <div class="c2log" id="c2log"></div>
+    </div>
+    <div class="panel c2">
+      <div class="ph"><span class="fx"></span>RESEARCH · BEST TARGETS<span class="x" id="rsN">–</span></div>
+      <div class="tlist" id="rslist"><div style="padding:14px;color:var(--dim2);font-size:10.5px">ranking programs by fit for IOLITE+ONYX (public data only)…</div></div>
+    </div>
+  </div>
+
+  <div class="bottom panel">
+    <span class="rlabel">PIPELINE</span>
+    <div class="track" id="track"><div class="dimline"></div><div class="playhead" id="playhead"></div></div>
+    <div class="now" id="handoff">— idle —</div>
+  </div>
+</div>
+<button class="run df hand" id="handBack">◄ IOLITE</button>
+
+<script>
+const DEMO_SPEC = {"base_url": "https://shop.demo.test", "scope": {"allowed_hosts": ["shop.demo.test"], "dry_run": true, "automation_permitted": true, "allow_destructive": false}, "principals": [{"pid": "A", "label": "capture_A", "auth": {"authorization": "$TOKEN_A"}, "profile_headers": {"user-agent": "Mozilla/5.0 (X11; Linux x86_64) Chrome/126", "accept": "application/json", "sec-fetch-site": "same-origin"}}, {"pid": "B", "label": "capture_B", "auth": {"authorization": "$TOKEN_B"}, "profile_headers": {"user-agent": "Mozilla/5.0 (X11; Linux x86_64) Chrome/126", "accept": "application/json"}}], "contract": {"GET /api/v1/orders/{id}": {"effect": "OBJECT_ACCESS"}, "GET /api/v1/users/{id}/profile": {"effect": "OBJECT_ACCESS"}, "GET /api/v1/vehicles/{id}/location": {"effect": "OBJECT_ACCESS"}}, "seed": [{"principal": "A", "method": "GET", "path": "/api/v1/orders/1001"}, {"principal": "A", "method": "GET", "path": "/api/v1/users/501/profile"}, {"principal": "A", "method": "GET", "path": "/api/v1/vehicles/9/location"}, {"principal": "B", "method": "GET", "path": "/api/v1/orders/1002"}, {"principal": "B", "method": "GET", "path": "/api/v1/users/502/profile"}, {"principal": "B", "method": "GET", "path": "/api/v1/vehicles/12/location"}], "probe": [{"principal": "B", "method": "GET", "path": "/api/v1/users/501/profile", "_family": "horizontal", "_replayed_from": "A", "_object_id": "501", "_carrier": "path"}, {"principal": "B", "method": "GET", "path": "/api/v1/orders/1001", "_family": "horizontal", "_replayed_from": "A", "_object_id": "1001", "_carrier": "path"}, {"principal": "A", "method": "GET", "path": "/api/v1/vehicles/12/location", "_family": "horizontal", "_replayed_from": "B", "_object_id": "12", "_carrier": "path"}, {"principal": "A", "method": "GET", "path": "/api/v1/users/502/profile", "_family": "horizontal", "_replayed_from": "B", "_object_id": "502", "_carrier": "path"}, {"principal": "A", "method": "GET", "path": "/api/v1/orders/1002", "_family": "horizontal", "_replayed_from": "B", "_object_id": "1002", "_carrier": "path"}, {"principal": "B", "method": "GET", "path": "/api/v1/vehicles/9/location", "_family": "horizontal", "_replayed_from": "A", "_object_id": "9", "_carrier": "path"}], "_iolite": {"tool": "IOLITE", "version": "1.3.0", "endpoints_total": 19, "contract_probeable": 3, "leads": [{"endpoint": "GET /api/v1/internal/export/{id}", "effect": "OBJECT_ACCESS", "tier": "T3_ARCHIVED", "confidence": "low", "risk": 25, "reason": "archived-only ghost \u2014 removed from current UI, may still be live", "activation": "request it once as one of your accounts to confirm it is live, then re-run"}, {"endpoint": "DELETE /api/v1/admin/orders/{id}", "effect": "AUTHORITY", "tier": "T2_CAPTURED", "confidence": "medium", "risk": 23, "reason": "declared/mined, but no concrete id observed and no controlled principal reached it", "activation": "capture an authenticated request to this endpoint with one of your accounts, then re-run"}, {"endpoint": "PUT /api/v1/admin/users/{id}/role", "effect": "AUTHORITY", "tier": "T2_CAPTURED", "confidence": "medium", "risk": 23, "reason": "declared/mined, but no concrete id observed and no controlled principal reached it", "activation": "capture an authenticated request to this endpoint with one of your accounts, then re-run"}, {"endpoint": "GET /api/v1/admin/reports/{id}", "effect": "OBJECT_ACCESS", "tier": "T2_CAPTURED", "confidence": "medium", "risk": 22, "reason": "declared/mined, but no concrete id observed and no controlled principal reached it", "activation": "capture an authenticated request to this endpoint with one of your accounts, then re-run"}, {"endpoint": "GET /api/v0/orders/{id}", "effect": "OBJECT_ACCESS", "tier": "T3_ARCHIVED", "confidence": "low", "risk": 19, "reason": "archived-only ghost \u2014 removed from current UI, may still be live", "activation": "request it once as one of your accounts to confirm it is live, then re-run"}, {"endpoint": "PUT /api/v1/users/{id}/profile", "effect": "STATE_GATE", "tier": "T2_CAPTURED", "confidence": "medium", "risk": 11, "reason": "declared/mined, but no concrete id observed and no controlled principal reached it", "activation": "capture an authenticated request to this endpoint with one of your accounts, then re-run"}, {"endpoint": "MUTATION refundOrder", "effect": "PAYMENT", "tier": "T2_CAPTURED", "confidence": "medium", "risk": 8, "reason": "declared/mined, but no concrete id observed and no controlled principal reached it", "activation": "capture an authenticated request to this endpoint with one of your accounts, then re-run"}, {"endpoint": "MUTATION updateUserRole", "effect": "AUTHORITY_GRANT", "tier": "T2_CAPTURED", "confidence": "medium", "risk": 8, "reason": "declared/mined, but no concrete id observed and no controlled principal reached it", "activation": "capture an authenticated request to this endpoint with one of your accounts, then re-run"}, {"endpoint": "QUERY orders", "effect": "FIELD_PROJECTION", "tier": "T2_CAPTURED", "confidence": "medium", "risk": 6, "reason": "declared/mined, but no concrete id observed and no controlled principal reached it", "activation": "capture an authenticated request to this endpoint with one of your accounts, then re-run"}, {"endpoint": "POST /api/v1/orders/{id}/refund", "effect": "STATE_GATE", "tier": "T2_CAPTURED", "confidence": "medium", "risk": 2, "reason": "declared/mined, but no concrete id observed and no controlled principal reached it", "activation": "capture an authenticated request to this endpoint with one of your accounts, then re-run"}, {"endpoint": "POST /api/v1/payments/{id}/settle", "effect": "STATE_GATE", "tier": "T2_CAPTURED", "confidence": "medium", "risk": 2, "reason": "declared/mined, but no concrete id observed and no controlled principal reached it", "activation": "capture an authenticated request to this endpoint with one of your accounts, then re-run"}, {"endpoint": "QUERY order", "effect": "OBJECT_ACCESS", "tier": "T2_CAPTURED", "confidence": "medium", "risk": 2, "reason": "declared/mined, but no concrete id observed and no controlled principal reached it", "activation": "capture an authenticated request to this endpoint with one of your accounts, then re-run"}, {"endpoint": "QUERY user", "effect": "OBJECT_ACCESS", "tier": "T2_CAPTURED", "confidence": "medium", "risk": 2, "reason": "declared/mined, but no concrete id observed and no controlled principal reached it", "activation": "capture an authenticated request to this endpoint with one of your accounts, then re-run"}, {"endpoint": "POST /api/graphql", "effect": "STATE_GATE", "tier": "T2_CAPTURED", "confidence": "medium", "risk": 0, "reason": "declared/mined, but no concrete id observed and no controlled principal reached it", "activation": "capture an authenticated request to this endpoint with one of your accounts, then re-run"}, {"endpoint": "POST /api/v1/coupons/{id}/redeem", "effect": "STATE_GATE", "tier": "T2_CAPTURED", "confidence": "medium", "risk": 0, "reason": "declared/mined, but no concrete id observed and no controlled principal reached it", "activation": "capture an authenticated request to this endpoint with one of your accounts, then re-run"}], "contract_meta": {"GET /api/v1/orders/{id}": {"tier": "T1_LIVE", "confidence": "high", "risk": 21}, "GET /api/v1/users/{id}/profile": {"tier": "T1_LIVE", "confidence": "high", "risk": 25}, "GET /api/v1/vehicles/{id}/location": {"tier": "T1_LIVE", "confidence": "high", "risk": 19}}, "ghost_endpoints": ["GET /api/v0/orders/{id}", "GET /api/v1/internal/export/{id}"], "probe_families": {"horizontal": 6, "vertical": 0}, "note": "contract = endpoints the plan can actually exercise; everything else is a lead needing acquisition. Every finding is still decided by ONYX \u0394state confirmation (QL5).", "top_candidates": [{"endpoint": "GET /api/v1/internal/export/{id}", "risk": 25, "effect": "OBJECT_ACCESS", "probeable": false, "reasons": ["+10 object-addressed GET (BOLA surface)", "+8 privilege/admin hint (BFLA)", "+7 ghost endpoint (archived-only \u2014 authz may have rotted)"]}, {"endpoint": "GET /api/v1/users/{id}/profile", "risk": 25, "effect": "OBJECT_ACCESS", "probeable": true, "reasons": ["+10 object-addressed GET (BOLA surface)", "+6 enumerable id (sequential)", "+6 sensitive noun (file,profile,user)", "+3 observed live (real ids available to thread)"]}, {"endpoint": "DELETE /api/v1/admin/orders/{id}", "risk": 23, "effect": "AUTHORITY", "probeable": false, "reasons": ["+8 privilege/admin hint (BFLA)", "+5 mutating verb on addressed object", "+6 value/authority effect (AUTHORITY)", "+4 sensitive noun (admin,order)"]}, {"endpoint": "PUT /api/v1/admin/users/{id}/role", "risk": 23, "effect": "AUTHORITY", "probeable": false, "reasons": ["+8 privilege/admin hint (BFLA)", "+5 mutating verb on addressed object", "+6 value/authority effect (AUTHORITY)", "+4 sensitive noun (admin,user)"]}, {"endpoint": "GET /api/v1/admin/reports/{id}", "risk": 22, "effect": "OBJECT_ACCESS", "probeable": false, "reasons": ["+10 object-addressed GET (BOLA surface)", "+8 privilege/admin hint (BFLA)", "+4 sensitive noun (admin,report)"]}, {"endpoint": "GET /api/v1/orders/{id}", "risk": 21, "effect": "OBJECT_ACCESS", "probeable": true, "reasons": ["+10 object-addressed GET (BOLA surface)", "+6 enumerable id (sequential)", "+2 sensitive noun (order)", "+3 observed live (real ids available to thread)"]}, {"endpoint": "GET /api/v0/orders/{id}", "risk": 19, "effect": "OBJECT_ACCESS", "probeable": false, "reasons": ["+10 object-addressed GET (BOLA surface)", "+7 ghost endpoint (archived-only \u2014 authz may have rotted)", "+2 sensitive noun (order)"]}, {"endpoint": "GET /api/v1/vehicles/{id}/location", "risk": 19, "effect": "OBJECT_ACCESS", "probeable": true, "reasons": ["+10 object-addressed GET (BOLA surface)", "+6 enumerable id (sequential)", "+3 observed live (real ids available to thread)"]}, {"endpoint": "PUT /api/v1/users/{id}/profile", "risk": 11, "effect": "STATE_GATE", "probeable": false, "reasons": ["+5 mutating verb on addressed object", "+6 sensitive noun (file,profile,user)"]}, {"endpoint": "MUTATION refundOrder", "risk": 8, "effect": "PAYMENT", "probeable": false, "reasons": ["+6 value/authority effect (PAYMENT)", "+2 sensitive noun (order)"]}, {"endpoint": "MUTATION updateUserRole", "risk": 8, "effect": "AUTHORITY_GRANT", "probeable": false, "reasons": ["+6 value/authority effect (AUTHORITY_GRANT)", "+2 sensitive noun (user)"]}, {"endpoint": "QUERY orders", "risk": 6, "effect": "FIELD_PROJECTION", "probeable": false, "reasons": ["+4 field_projection surface", "+2 sensitive noun (order)"]}, {"endpoint": "GET /api/v1/orders", "risk": 2, "effect": "NONE", "probeable": false, "reasons": ["+2 sensitive noun (order)"]}, {"endpoint": "POST /api/v1/orders/{id}/refund", "risk": 2, "effect": "STATE_GATE", "probeable": false, "reasons": ["+2 sensitive noun (order)"]}, {"endpoint": "POST /api/v1/payments/{id}/settle", "risk": 2, "effect": "STATE_GATE", "probeable": false, "reasons": ["+2 sensitive noun (payment)"]}, {"endpoint": "QUERY order", "risk": 2, "effect": "OBJECT_ACCESS", "probeable": false, "reasons": ["+2 sensitive noun (order)"]}, {"endpoint": "QUERY user", "risk": 2, "effect": "OBJECT_ACCESS", "probeable": false, "reasons": ["+2 sensitive noun (user)"]}]}, "_engagement": {"program": "IOLITE self-demo (fixtures)", "authorized_by": "in-repo fixtures (self-authored, always authorised)", "operator": "demo", "own_accounts_only": true, "automation_permitted": true, "allow_destructive": false, "dry_run": true, "attested": true}};
+const STAGES=["SCOPE","PASSIVE","HAR","EXTRACT","GHOST","MODEL","TRIAGE","REPLAY","ONYX"];
+let CURRENT=null, curView="scope", sevFilter="all";
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+setInterval(()=>{$('tClock').textContent=new Date().toISOString().slice(11,19);},1000);
+(function(){const t=$('track');STAGES.forEach((s,i)=>{const x=6+i*(88/8);
+  const k=document.createElement('div');k.className='tick';k.style.left=x+'%';k.dataset.i=i;t.appendChild(k);
+  const l=document.createElement('div');l.className='station';l.style.left=x+'%';l.textContent=i;t.appendChild(l);});})();
+
+let spkData=Array(60).fill(0);
+function drawSpk(){const c=$('spk'),x=c.getContext('2d');const W=c.width,H=c.height;x.clearRect(0,0,W,H);
+  const g=x.createLinearGradient(0,0,W,0);g.addColorStop(0,'#a855f7');g.addColorStop(.55,'#6366f1');g.addColorStop(1,'#22d3ee');
+  x.strokeStyle=g;x.lineWidth=1.4;x.beginPath();
+  spkData.forEach((v,i)=>{const px=i/(spkData.length-1)*W,py=H-2-v*(H-6);i?x.lineTo(px,py):x.moveTo(px,py);});
+  x.stroke();x.globalAlpha=.13;x.lineTo(W,H);x.lineTo(0,H);x.fillStyle=g;x.fill();x.globalAlpha=1;
+  const lv=spkData[spkData.length-1]||0,lpx=W-1,lpy=H-2-lv*(H-6);x.beginPath();x.arc(lpx,lpy,2.2,0,7);x.fillStyle='#b7c0ff';x.shadowColor='#818cf8';x.shadowBlur=8;x.fill();x.shadowBlur=0;}
+drawSpk();
+
+function bars(spec){
+  const eff={};(spec._iolite.top_candidates||[]).forEach(c=>eff[c.effect]=(eff[c.effect]||0)+1);
+  Object.keys(spec.contract).forEach(k=>{const e=spec.contract[k].effect;eff[e]=(eff[e]||0)+1;});
+  (spec._iolite.leads||[]).forEach(l=>eff[l.effect]=(eff[l.effect]||0)+1);
+  const order=["OBJECT_ACCESS","STATE_GATE","AUTHORITY","AUTHORITY_GRANT","PAYMENT","PRICE","FIELD_PROJECTION","CROSS_SURFACE"];
+  const max=Math.max(1,...Object.values(eff));
+  $('effBars').innerHTML=order.filter(e=>eff[e]).map(e=>
+    `<div class="bar eff"><div class="bl">${e}<b>${eff[e]}</b></div><div class="bt"><div class="bf" style="width:${eff[e]/max*100}%"></div></div></div>`).join('');
+  const load={};(spec.seed||[]).forEach(s=>load[s.principal]=(load[s.principal]||0)+1);
+  const pm=Math.max(1,...Object.values(load));
+  $('prinBars').innerHTML=(spec.principals||[]).map(p=>{const n=load[p.pid]||0;
+    return `<div class="bar ${p.pid}"><div class="bl">${esc(p.label)} <b>${n}</b></div><div class="bt"><div class="bf" style="width:${n/pm*100}%"></div></div></div>`;}).join('');
+}
+
+/* ===== SURVEY SCOPE — radial cartographic map (IOLITE's signature viz) ===== */
+let scope={cands:[],prin:[],host:''},raf=0,ang=0,mapRot=0,mapVel=0,markerHits=[],mapGeom={cx:0,cy:0,R:1},selectedKey=null,hoverKey=null,dragging=false;
+let fxT=0,fxLastT=0,fxMarks={},fxMotes=[],fxShocks=[];   // center-stage physics field
+function fxShock(col){fxShocks.push({born:performance.now(),col:col||null});}
+function band(r){return r>=24?'crit':r>=18?'high':r>=10?'med':'low';}
+const BANDR={crit:.30,high:.50,med:.68,low:.86};
+const BANDC={crit:'#a855f7',high:'#6366f1',med:'#22d3ee',low:'#7d80b0'};
+function hashAng(s){let h=0;for(let i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))>>>0;return (h%360)*Math.PI/180;}
+function buildScope(spec){
+  scope.host=(spec.scope.allowed_hosts||[])[0]||spec.base_url||'target';
+  scope.cands=(spec._iolite.top_candidates||[]).map(c=>({key:c.endpoint,risk:c.risk,eff:c.effect,
+    b:band(c.risk),a:hashAng(c.endpoint)}));
+  scope.prin=(spec.principals||[]).map((p,i)=>({id:p.pid,i}));
+}
+function drawScope(){
+  const c=$('cv');if(!c.offsetWidth){raf=requestAnimationFrame(drawScope);return;}
+  const W=c.width=c.offsetWidth,H=c.height=c.offsetHeight,cx=W/2,cy=H/2,R=Math.min(W,H)*0.46;
+  mapGeom={cx,cy,R};
+  const x=c.getContext('2d');
+  const now=performance.now();let dt=(now-(fxLastT||now))/16.67;fxLastT=now;if(dt>3)dt=3;if(!RMOK)fxT+=dt;
+  x.clearRect(0,0,W,H);
+  // C1 — drag inertia: the field keeps spinning after a fling, then eases to rest
+  if(!dragging&&!RMOK){mapRot+=mapVel;mapVel*=0.94;if(Math.abs(mapVel)<0.00004)mapVel=0;}
+  markerHits=[];
+  // ── floating mote field (depth) ──
+  if(!fxMotes.length)for(let i=0;i<48;i++)fxMotes.push({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.14,vy:(Math.random()-.5)*.14,r:Math.random()*1.3+.3,p:Math.random()*6.28});
+  fxMotes.forEach(m=>{if(!RMOK){m.x+=m.vx*dt;m.y+=m.vy*dt;}if(m.x<0)m.x+=W;if(m.x>W)m.x-=W;if(m.y<0)m.y+=H;if(m.y>H)m.y-=H;
+    x.globalAlpha=.16+.16*Math.sin(fxT*.03+m.p);x.fillStyle='#818cf8';x.beginPath();x.arc(m.x,m.y,m.r,0,7);x.fill();});
+  x.globalAlpha=1;
+  // ── graduated, slowly counter-rotating rings (richer lines) ──
+  Object.entries(BANDR).forEach(([name,f],bi)=>{const rr=R*f;
+    x.beginPath();x.arc(cx,cy,rr,0,7);x.strokeStyle='rgba(129,140,248,.16)';x.lineWidth=1;x.stroke();
+    const grot=mapRot*(bi%2?-.6:.6)+fxT*.002*(bi%2?-1:1);
+    for(let k=0;k<48;k++){const a=k/48*Math.PI*2+grot,maj=k%4===0,t0=maj?5:2.4;
+      x.globalAlpha=maj?.5:.22;x.strokeStyle=maj?BANDC[name]:'rgba(129,140,248,1)';x.lineWidth=1;
+      x.beginPath();x.moveTo(cx+Math.cos(a)*(rr-t0),cy+Math.sin(a)*(rr-t0));x.lineTo(cx+Math.cos(a)*rr,cy+Math.sin(a)*rr);x.stroke();}
+    x.globalAlpha=.5;x.fillStyle=BANDC[name];x.font='7.5px monospace';x.textAlign='left';x.fillText(name.toUpperCase(),cx+5,cy-rr+1);x.globalAlpha=1;});
+  // ── shimmering radial spokes (lines) ──
+  for(let k=0;k<36;k++){const a=k/36*Math.PI*2+mapRot,sh=.5+.5*Math.sin(fxT*.02+k*.5);
+    x.globalAlpha=.05+.09*sh;x.strokeStyle='rgba(129,140,248,1)';x.lineWidth=1;
+    x.beginPath();x.moveTo(cx,cy);x.lineTo(cx+Math.cos(a)*R,cy+Math.sin(a)*R);x.stroke();}
+  x.globalAlpha=1;
+  // ── survey sweep beam + leading edge ──
+  ang+=RMOK?0:.012;const grad=x.createRadialGradient(cx,cy,0,cx,cy,R);
+  grad.addColorStop(0,'rgba(129,140,248,.2)');grad.addColorStop(1,'rgba(129,140,248,0)');
+  x.save();x.translate(cx,cy);x.rotate(ang);x.beginPath();x.moveTo(0,0);x.arc(0,0,R,-.34,.02);x.closePath();x.fillStyle=grad;x.fill();
+  x.strokeStyle='rgba(183,192,255,.5)';x.lineWidth=1.3;x.beginPath();x.moveTo(0,0);x.lineTo(R,0);x.stroke();x.restore();
+  // ── shockwaves (click / survey-complete) ──
+  fxShocks=fxShocks.filter(s=>{const age=(now-s.born)/900;if(age>=1)return false;
+    x.beginPath();x.arc(cx,cy,age*R*1.12,0,7);x.strokeStyle=s.col||'rgba(183,192,255,'+(.5*(1-age)).toFixed(3)+')';x.lineWidth=2*(1-age);x.stroke();return true;});
+  // ── connection lines + flowing particles + floating, spring-driven bodies ──
+  scope.cands.forEach((m,mi)=>{
+    const st=fxMarks[m.key]||(fxMarks[m.key]={fr:0,fv:0,glow:0,p:Math.random()*6.28});
+    const bob=RMOK?0:Math.sin(fxT*.03+st.p)*3.2, sway=RMOK?0:Math.cos(fxT*.021+st.p)*.025;
+    st.fv+=(-st.fr)*.12;st.fv*=.86;st.fr+=st.fv*dt;                      // spring on any impulse
+    const aa=m.a+mapRot+sway, r=R*BANDR[m.b]+bob+st.fr, px=cx+Math.cos(aa)*r, py=cy+Math.sin(aa)*r;
+    markerHits.push({x:px,y:py,key:m.key,risk:m.risk,eff:m.eff,b:m.b});
+    let rel=((aa-ang)%(Math.PI*2)+Math.PI*2)%(Math.PI*2);const lit=rel<.45||rel>Math.PI*2-.12;
+    if(lit){st.glow=1;if(!RMOK&&Math.abs(st.fr)<.5&&Math.abs(st.fv)<.2)st.fv+=.7;}else st.glow*=.94;   // sweep kick
+    const isSel=m.key===selectedKey,isHov=m.key===hoverKey,glow=Math.max(st.glow,isSel?1:0,isHov?.8:0);
+    // connection line (center → body), gradient, brightens with glow
+    const lg=x.createLinearGradient(cx,cy,px,py);lg.addColorStop(0,'rgba(129,140,248,.05)');lg.addColorStop(1,BANDC[m.b]);
+    x.globalAlpha=.12+.5*glow;x.strokeStyle=lg;x.lineWidth=1+1.5*glow;x.beginPath();x.moveTo(cx,cy);x.lineTo(px,py);x.stroke();x.globalAlpha=1;
+    // flowing data particles along the line
+    if(!RMOK){const nP=1+Math.round(m.risk/10);for(let q=0;q<nP;q++){const tt=((fxT*.006)+(q/nP)+mi*.13)%1;
+      const perp=Math.sin(tt*Math.PI)*3,ox=-Math.sin(aa)*perp,oy=Math.cos(aa)*perp,qx=cx+(px-cx)*tt+ox,qy=cy+(py-cy)*tt+oy;
+      x.globalAlpha=.2+.5*(1-Math.abs(tt-.5)*1.2);x.fillStyle=BANDC[m.b];x.beginPath();x.arc(qx,qy,1.3+glow,0,7);x.fill();}x.globalAlpha=1;}
+    // the body — faceted diamond, size by risk, lift+glow when swept / hovered / selected
+    let s=3.2+m.risk*.12;if(isHov)s+=1.6;if(isSel)s+=2.4;s+=glow*1.4;
+    x.save();x.translate(px,py);x.rotate(Math.PI/4+fxT*.004);
+    if(glow>.02){x.shadowColor=BANDC[m.b];x.shadowBlur=6+14*glow;}
+    x.fillStyle=BANDC[m.b];x.globalAlpha=(lit||isSel||isHov)?1:.8;x.fillRect(-s,-s,s*2,s*2);x.shadowBlur=0;
+    x.globalAlpha=.55;x.strokeStyle='rgba(10,10,24,.8)';x.lineWidth=1;x.beginPath();x.moveTo(-s,0);x.lineTo(s,0);x.moveTo(0,-s);x.lineTo(0,s);x.stroke();
+    x.restore();x.globalAlpha=1;
+    if(isSel){x.beginPath();x.arc(px,py,s+6+(RMOK?0:Math.sin(fxT*.1)*1.5),0,7);x.strokeStyle=BANDC[m.b];x.lineWidth=1.4;x.globalAlpha=.9;x.stroke();x.globalAlpha=1;}
+  });
+  // ── breathing, rotating, faceted core gem ──
+  const pulse=1+(RMOK?0:Math.sin(fxT*.05)*.08);
+  x.save();x.translate(cx,cy);x.rotate(fxT*.004);x.scale(pulse,pulse);
+  x.strokeStyle='#b7c0ff';x.lineWidth=1.6;x.beginPath();x.moveTo(0,-11);x.lineTo(9,-3);x.lineTo(6,10);x.lineTo(-6,10);x.lineTo(-9,-3);x.closePath();x.stroke();
+  x.globalAlpha=.22;x.fillStyle='#818cf8';x.fill();x.globalAlpha=.6;
+  x.beginPath();x.moveTo(-9,-3);x.lineTo(0,0);x.lineTo(9,-3);x.moveTo(0,0);x.lineTo(0,10);x.moveTo(0,0);x.lineTo(-6,10);x.moveTo(0,0);x.lineTo(6,10);x.stroke();
+  x.restore();x.globalAlpha=1;
+  x.fillStyle='#7d80b0';x.font='9px monospace';x.textAlign='center';x.fillText(scope.host,cx,cy+R+6);
+  // ── floating, pulsing principal bodies ──
+  scope.prin.forEach((p,i)=>{const a=ang*.4+mapRot+p.i/Math.max(1,scope.prin.length)*Math.PI*2;
+    const bob=RMOK?0:Math.sin(fxT*.04+i)*4, rr=R*1.03+bob, px=cx+Math.cos(a)*rr, py=cy+Math.sin(a)*rr;
+    const col=p.id==='A'?'#5fb0e6':(p.id==='B'?'#ff8a2b':'#818cf8');
+    x.globalAlpha=.4+.3*(RMOK?0:Math.sin(fxT*.08+i));x.beginPath();x.arc(px,py,10,0,7);x.strokeStyle=col;x.lineWidth=1;x.stroke();x.globalAlpha=1;
+    x.beginPath();x.arc(px,py,7,0,7);x.fillStyle='#0a0a18';x.fill();x.lineWidth=2;x.strokeStyle=col;x.stroke();
+    x.fillStyle=col;x.font='bold 9px monospace';x.textAlign='center';x.fillText(p.id,px,py+3);});
+  raf=requestAnimationFrame(drawScope);
+}
+
+function ledger(spec){
+  const cands=(spec._iolite.top_candidates||[]);$('trgN').textContent=String(cands.length).padStart(2,'0');
+  const show=cands.filter(c=>sevFilter==='all'||band(c.risk)===sevFilter);
+  $('tlist').innerHTML=show.length?show.map((c,i)=>{const b=band(c.risk);
+    return `<div class="trow ${b}" style="animation-delay:${i*40}ms"><div class="rt">${esc(c.endpoint)}</div>
+      <div class="rm"><span>${esc(c.effect)}${c.probeable?'':' · lead'}</span><span style="color:var(--acc-l)">risk ${c.risk}</span></div>
+      <div class="rf">${esc((c.reasons||[]).slice(0,2).map(r=>r.replace(/^\+\d+ /,'')).join(' · '))}</div></div>`;}).join('')
+    :'<div style="padding:16px;color:var(--dim2);font-size:10.5px">no candidates in this band</div>';
+}
+function streamView(spec){const cands=(spec._iolite.top_candidates||[]);const max=Math.max(1,...cands.map(c=>c.risk));
+  $('stream').innerHTML=cands.map((c,i)=>`<div class="crow" style="animation-delay:${i*30}ms"><div class="rk">${c.risk}</div>
+    <div><div class="ep mono">${esc(c.endpoint)}</div><div class="meta">${esc((c.reasons||[]).slice(0,3).map(r=>r.replace(/^\+\d+ /,'')).join(' · '))}</div></div>
+    <div class="chip">${esc(c.effect)}${c.probeable?'':' · lead'}</div>
+    <div class="bar2"><i style="width:${c.risk/max*100}%"></i></div></div>`).join('');}
+function diagView(spec){const q=spec._iolite;const rows=[['endpoints total',q.endpoints_total],['contract (probeable)',q.contract_probeable],
+    ['leads (need capture)',(q.leads||[]).length],['ghost endpoints',(q.ghost_endpoints||[]).length],
+    ['principals',(spec.principals||[]).length],['seed reads',(spec.seed||[]).length],
+    ['probes · horizontal',q.probe_families.horizontal],['probes · vertical',q.probe_families.vertical],['base url',spec.base_url]];
+  $('diag').innerHTML=rows.map(([k,v])=>`<div class="diagline">${k}<b>${esc(v)}</b></div>`).join('');}
+function log(cls,txt){const el=$('c2log');const t=new Date().toISOString().slice(11,19);
+  el.innerHTML+=`<div class="l"><span class="t">${t}</span> <span class="${cls}">${txt}</span></div>`;el.scrollTop=el.scrollHeight;}
+
+function render(spec){
+  CURRENT=spec;
+  $('tSes').textContent='0x'+(Math.abs(JSON.stringify(spec.contract).length*7%65536)).toString(16).padStart(4,'0');
+  ioCount($('tEp'),spec._iolite.endpoints_total);ioCount($('tPb'),(spec.probe||[]).length);
+  bars(spec);ledger(spec);streamView(spec);diagView(spec);buildScope(spec);if(!raf)drawScope();
+  const tks=(spec.probe||[]).slice(0,12).map(p=>`<em>${p._family==='vertical'?'↑':'→'}</em> ${p.principal} ${p.path}`).join('  ·  ');
+  $('tk').innerHTML=(tks+'  ·  ')+(tks||'// no probes');
+  $('coord').innerHTML=`SURFACE <b>MAPPED</b> · ${scope.cands.length} endpoints · ${scope.prin.length} principals`;
+  document.querySelectorAll('.tick').forEach(t=>t.classList.remove('done'));
+  const ev=[['inf','scope-guard armed · '+(spec.scope.allowed_hosts||[]).join(',')],['inf','passive OSINT swept'],
+    ['hi','HAR ingested · '+(spec.principals||[]).length+' principals'],['ac','extracted '+spec._iolite.endpoints_total+' endpoints'],
+    ['wrn','ghost diff · '+((spec._iolite.ghost_endpoints||[]).length)+' archived-only'],['inf','surface modelled'],
+    ['ac','triaged '+(spec._iolite.top_candidates||[]).length+' candidates'],['hi','survey plan · '+(spec.probe||[]).length+' probes'],
+    ['ok','spec ready → ONYX confirms by Δstate']];
+  $('c2log').innerHTML='';
+  ev.forEach((e,i)=>setTimeout(()=>{log(e[0],e[1]);const tk=document.querySelector('.tick[data-i="'+i+'"]');if(tk){tk.classList.add('done');tk.classList.add('ping');setTimeout(()=>tk.classList.remove('ping'),520);}
+    $('playhead').style.left=(6+i*(88/8))+'%';spkData.push(0.3+Math.random()*0.7);spkData.shift();drawSpk();$('thNum').textContent=(1+Math.random()*2).toFixed(1)+'/s';
+    if(i===ev.length-1){$('handoff').textContent='SPEC READY · '+spec._iolite.contract_probeable+' probeable';$('flash').classList.add('hit');setTimeout(()=>$('flash').classList.remove('hit'),160);fxShock('rgba(183,192,255,.6)');}},250+i*220));
+}
+
+async function runDemo(){const b=$('runBtn');b.textContent='…';b.disabled=true;b.classList.add('charge');
+  try{const r=await fetch('/api/demo');const d=await r.json();render(d.spec||DEMO_SPEC);}catch(e){render(DEMO_SPEC);}
+  b.textContent='SURVEY';b.disabled=false;b.classList.remove('charge');}
+$('runBtn').onclick=runDemo;
+$('specfile').onchange=e=>{const f=e.target.files[0];if(!f)return;const rd=new FileReader();
+  rd.onload=()=>{try{render(JSON.parse(rd.result));}catch(err){alert('not valid JSON');}};rd.readAsText(f);};
+document.querySelectorAll('.mtab').forEach(m=>m.onclick=()=>{curView=m.dataset.view;
+  document.querySelectorAll('.mtab').forEach(o=>o.classList.toggle('on',o===m));
+  ['scope','stream','diag'].forEach(v=>$('v-'+v).classList.toggle('on',v===curView));});
+document.querySelectorAll('.sv').forEach(s=>s.onclick=()=>{sevFilter=s.dataset.sev;
+  document.querySelectorAll('.sv').forEach(o=>o.classList.toggle('on',o===s));if(CURRENT)ledger(CURRENT);});
+$('themeBtn').onclick=()=>{const r=document.documentElement;r.dataset.theme=r.dataset.theme==='light'?'dark':'light';};
+
+async function health(){try{const r=await fetch('/api/health');const h=await r.json();onyxPill(h.onyx_available);}catch(e){onyxPill(false);}}
+async function onyxState(){try{const r=await fetch('/api/onyx');const o=await r.json();onyxPill(o.available);}catch(e){}}
+function onyxPill(av){$('onyxLed').className='led'+(av?'':' off');$('onyxTxt').textContent=av?'ONYX linked':'ONYX not linked';}
+let onyxLoaded=false;
+function showTab(t){document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));
+  const onyx=t==='onyx';['view-left','view-right'].forEach(id=>$(id).style.visibility=onyx?'hidden':'visible');
+  document.querySelectorAll('.stage .view:not(#view-onyx)').forEach(v=>v.style.opacity=onyx?'0':'');
+  $('view-onyx').classList.toggle('show',onyx);if(onyx)ensureOnyx();}
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>showTab(b.dataset.tab));
+let onyxBusy=false;
+function frameOnyx(url){                       // point the iframe at a CONFIRMED-up ONYX
+  const fb=$('onyxFallback'),fr=$('onyxFrame');
+  fr.onload=()=>{fb.style.display='none';fr.style.display='';onyxLoaded=true;onyxBusy=false;};
+  fb.style.display='';fr.style.display='none';fb.textContent='loading ONYX…';
+  fr.src=url+(url.indexOf('?')<0?'?':'&')+'t='+Date.now();   // cache-bust ⇒ a real reload
+}
+async function ensureOnyx(force){
+  if(onyxBusy)return; if(onyxLoaded&&!force)return;
+  onyxBusy=true; onyxLoaded=false;
+  const fb=$('onyxFallback'),fr=$('onyxFrame');
+  fb.style.display='';fr.style.display='none';
+  // poll launch until ONYX actually answers, THEN frame it (never frame a blank)
+  for(let i=0;i<15;i++){
+    fb.textContent='starting ONYX… '+(i?('('+i+')'):'');
+    let d=null;
+    try{d=await (await fetch('/api/onyx/launch',{method:'POST'})).json();}catch(e){}
+    if(d&&!d.ok){
+      fb.innerHTML='ONYX not linked — start IOLITE with <b>ONYX_PATH</b> set.<br><span style="font-size:11px">'+esc(d.error||'')+'</span>';
+      onyxBusy=false;return;
+    }
+    if(d&&d.ok&&d.ready&&d.url){frameOnyx(d.url);return;}   // confirmed up → load it
+    await new Promise(r=>setTimeout(r,1000));
+  }
+  // took too long — offer the direct link + a working reload
+  const url='http://127.0.0.1:8787';
+  fb.innerHTML='ONYX is taking a moment. <a href="'+url+'" target="_blank" style="color:var(--acc-l)">open it directly ↗</a> or press ⟳.';
+  onyxBusy=false;
+}
+$('fsBtn').onclick=()=>{$('view-onyx').classList.add('full');$('handBack').classList.add('show');};
+$('handBack').onclick=()=>{$('view-onyx').classList.remove('full');$('handBack').classList.remove('show');showTab('iolite');};
+$('reloadOnyx').onclick=()=>{onyxLoaded=false;onyxBusy=false;ensureOnyx(true);};
+async function researchLoad(){
+  try{
+    const r=await fetch('/api/research?top=5');const d=await r.json();
+    const el=$('rslist');const ps=d.programs||[];
+    $('rsN').textContent=ps.length?String(ps.length):'0';
+    if(!ps.length){el.innerHTML='<div style="padding:14px;color:var(--dim2);font-size:10.5px">'+esc(d.error||'no programs — run: iolite research --live')+'</div>';return;}
+    const tc={FOCUS:'#a855f7',ROTATE:'#6366f1',WATCH:'#7d80b0'};
+    const bnd={FOCUS:'crit',ROTATE:'high',WATCH:'low'};
+    el.innerHTML=ps.map((p,i)=>{
+      const rel=(p.resp_eff!=null?p.resp_eff+'% resp':'')+(p.bounty_days!=null?' · ~'+p.bounty_days+'d pay':'');
+      const bk=(p.buckets||[]).join(' · ');
+      return `<div class="trow ${bnd[p.tier]||'low'}" style="cursor:default;animation-delay:${i*40}ms">
+        <div class="rt">${esc(p.name)}${p.fresh?' <span style="color:#22d3ee">🌱NEW</span>':''}</div>
+        <div class="rm"><span style="color:${tc[p.tier]||'#7d80b0'};font-weight:700">${p.score} · ${esc(p.tier)}</span><span style="color:var(--acc-l)">${esc(bk||p.platform)}</span></div>
+        <div class="rf">${esc((p.reasons||[])[0]||'')}</div>
+        <div class="rf" style="color:var(--dim2)">${esc(rel)} · <b>iolite research --plan ${esc(p.handle)}</b></div>
+      </div>`;}).join('');
+  }catch(e){$('rslist').innerHTML='<div style="padding:14px;color:var(--dim2);font-size:10.5px">research unavailable — run locally: python -m iolite serve</div>';}
+}
+/* ═══════════ ADDED: interactivity + physics wiring (identity unchanged) ═══════════ */
+const RMOK=matchMedia('(prefers-reduced-motion: reduce)').matches;
+/* B4 — animated count-up helper (used by render for ENDPOINTS/PROBES) */
+function ioCount(el,to){to=+to||0;const from=+(el.dataset.v||0);if(RMOK||from===to){el.textContent=to;el.dataset.v=to;return;}
+  el.dataset.v=to;const t0=performance.now(),d=520;(function f(t){const k=Math.min(1,((t||performance.now())-t0)/d);const e=1-Math.pow(1-k,3);
+    el.textContent=Math.round(from+(to-from)*e);if(k<1)requestAnimationFrame(f);})();}
+/* B5 — pointer-origin ripple on buttons/tabs/chips */
+document.addEventListener('pointerdown',e=>{const h=e.target.closest('.run,.iconbtn,.tab,.mtab,.sv');if(!h||RMOK)return;
+  const r=h.getBoundingClientRect(),s=document.createElement('span');s.className='rip';s.style.left=(e.clientX-r.left)+'px';s.style.top=(e.clientY-r.top)+'px';h.appendChild(s);setTimeout(()=>s.remove(),500);},true);
+/* B1 — gem click spins + flashes */
+(function(){const gem=document.querySelector('.gem');if(!gem)return;gem.addEventListener('click',()=>{
+  gem.classList.remove('spin');void gem.offsetWidth;gem.classList.add('spin');
+  const fl=$('flash');if(fl&&!RMOK){fl.classList.add('hit');setTimeout(()=>fl.classList.remove('hit'),160);}});})();
+/* B3 — sliding physical indicator behind the active item of each group */
+function linkSlide(sel){const box=document.querySelector(sel);if(!box)return;
+  const ind=document.createElement('div');ind.className='slide-ind';box.appendChild(ind);
+  function pos(){const on=box.querySelector('.on');if(!on){ind.style.opacity='0';return;}
+    ind.style.opacity='';ind.style.left=on.offsetLeft+'px';ind.style.top=on.offsetTop+'px';ind.style.width=on.offsetWidth+'px';ind.style.height=on.offsetHeight+'px';}
+  box.addEventListener('click',()=>requestAnimationFrame(pos));window.addEventListener('resize',pos);requestAnimationFrame(pos);}
+['.tabs','.modeset','.sevrow'].forEach(linkSlide);
+/* D1 — subtle background parallax follows the pointer */
+if(!RMOK)window.addEventListener('pointermove',e=>{const dx=e.clientX/innerWidth-.5,dy=e.clientY/innerHeight-.5;
+  const v=$('vig'),f=$('facet');if(v)v.style.transform='translate('+(dx*-8).toFixed(1)+'px,'+(dy*-8).toFixed(1)+'px)';
+  if(f)f.style.transform='translate('+(dx*6).toFixed(1)+'px,'+(dy*6).toFixed(1)+'px)';});
+/* C6 — pipeline tick hover labels */
+document.querySelectorAll('.tick').forEach(t=>{t.title=STAGES[+t.dataset.i]||'';});
+/* C1/C2 — map: drag to rotate with inertia; hover tooltip; click to select */
+(function(){const c=$('cv');if(!c)return;
+  let tip=$('mapTip');if(!tip){tip=document.createElement('div');tip.id='mapTip';($('v-scope')||document.body).appendChild(tip);}
+  let last=0,lastT=0,moved=0,px0=0,py0=0;
+  const angOf=(x,y)=>Math.atan2(y-mapGeom.cy,x-mapGeom.cx);
+  function hit(mx,my){let best=null,bd=14;markerHits.forEach(m=>{const d=Math.hypot(m.x-mx,m.y-my);if(d<bd){bd=d;best=m;}});return best;}
+  c.addEventListener('pointerdown',e=>{const r=c.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top;
+    dragging=true;moved=0;px0=e.clientX;py0=e.clientY;last=angOf(mx,my);lastT=performance.now();mapVel=0;c.classList.add('grab');try{c.setPointerCapture(e.pointerId);}catch(_){}});
+  c.addEventListener('pointermove',e=>{const r=c.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top;
+    if(dragging){let a=angOf(mx,my),d=a-last;if(d>Math.PI)d-=2*Math.PI;if(d<-Math.PI)d+=2*Math.PI;mapRot+=d;
+      const now=performance.now(),dt=Math.max(1,now-lastT);if(!RMOK)mapVel=d/dt*16;last=a;lastT=now;
+      moved+=Math.abs(e.clientX-px0)+Math.abs(e.clientY-py0);px0=e.clientX;py0=e.clientY;tip.style.display='none';return;}
+    const m=hit(mx,my);if(m){hoverKey=m.key;tip.style.display='';tip.style.left=(mx+12)+'px';tip.style.top=(my+12)+'px';
+      tip.innerHTML='<b>'+esc(m.key)+'</b><br>'+esc(m.eff)+' · <span class="rk">risk '+m.risk+'</span>';}
+    else{hoverKey=null;tip.style.display='none';}});
+  window.addEventListener('pointerup',()=>{if(dragging){dragging=false;c.classList.remove('grab');if(RMOK)mapVel=0;}});
+  c.addEventListener('click',e=>{if(moved>6)return;const r=c.getBoundingClientRect(),m=hit(e.clientX-r.left,e.clientY-r.top);if(m){selectOn(m.key);const st=fxMarks[m.key];if(st)st.fv+=1.6;fxShock('rgba(183,192,255,.55)');}});
+})();
+/* C3 — triage ↔ map cross-link */
+function selectOn(key){selectedKey=key;document.querySelectorAll('#tlist .trow').forEach(row=>{
+  const rt=row.querySelector('.rt');const on=!!rt&&rt.textContent.trim()===key;row.classList.toggle('sel',on);if(on)row.scrollIntoView({block:'nearest'});});}
+$('tlist').addEventListener('click',e=>{const row=e.target.closest('.trow');if(!row)return;const rt=row.querySelector('.rt');if(rt)selectOn(rt.textContent.trim());});
+
+health();onyxState();runDemo();researchLoad();
+</script>
+</body>
+</html>

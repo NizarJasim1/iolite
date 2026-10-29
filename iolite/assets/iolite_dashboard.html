@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>IOLITE — live</title>
+<style>
+  :root{
+    --bg:#0b0b14; --panel:#14141f; --panel2:#1b1b2a; --edge:#2a2a3d; --ink:#e9e9f3; --mut:#9a9ab5;
+    --v1:#8b5cf6; --v2:#6366f1; --v3:#22d3ee; --ok:#34d399; --warn:#f59e0b; --crit:#f43f5e; --med:#f59e0b;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:13px/1.5 ui-monospace,Menlo,Consolas,monospace}
+  a{color:var(--v3)}
+  header{padding:12px 16px;border-bottom:1px solid var(--edge);
+    background:linear-gradient(90deg,rgba(139,92,246,.18),rgba(34,211,238,.10));display:flex;flex-wrap:wrap;gap:14px;align-items:center}
+  .mark{font-weight:700;letter-spacing:.14em;background:linear-gradient(90deg,var(--v1),var(--v2),var(--v3));
+    -webkit-background-clip:text;background-clip:text;color:transparent}
+  .pill{border:1px solid var(--edge);border-radius:999px;padding:2px 10px;color:var(--mut)}
+  .pill b{color:var(--ink)}
+  .wrap{display:grid;grid-template-columns:1.1fr 1.2fr 1fr;gap:12px;padding:12px}
+  @media(max-width:1000px){.wrap{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--edge);border-radius:12px;overflow:hidden;
+    clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,12px 100%,0 calc(100% - 12px))}
+  .card h2{margin:0;padding:9px 12px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--mut);
+    border-bottom:1px solid var(--edge);background:var(--panel2)}
+  .card .body{padding:10px 12px;max-height:46vh;overflow:auto}
+  .feed div{padding:5px 8px;border-left:3px solid var(--edge);margin-bottom:5px;border-radius:4px;background:#0f0f1a}
+  .feed .corroborated{border-color:var(--crit);background:rgba(244,63,94,.10)}
+  .feed .boundary_learned{border-color:var(--ok);background:rgba(52,211,153,.08)}
+  .feed .enforcement_denial{border-color:var(--v2)}
+  .feed .enumeration_leak{border-color:var(--med);background:rgba(245,158,11,.08)}
+  .feed .defense{border-color:var(--warn);background:rgba(245,158,11,.06)}
+  .feed .t{color:var(--mut);font-size:11px}
+  table{width:100%;border-collapse:collapse}
+  th,td{text-align:left;padding:4px 6px;border-bottom:1px solid var(--edge);font-size:12px;vertical-align:top}
+  th{color:var(--mut);font-weight:600}
+  .tag{border-radius:5px;padding:1px 6px;font-size:11px;border:1px solid var(--edge)}
+  .owner_scoped{color:var(--v3)} .tenant_isolated{color:var(--med)} .role_restricted{color:var(--v1)} .unknown{color:var(--mut)}
+  .yes{color:var(--ok)} .no{color:var(--mut)}
+  .prin{display:flex;flex-wrap:wrap;gap:6px}
+  .prin .p{border:1px solid var(--edge);border-radius:8px;padding:6px 8px;min-width:92px;background:#0f0f1a}
+  .prin .p b{color:var(--v3)} .prin .p span{color:var(--mut);font-size:11px;display:block}
+  .lead{border-left:3px solid var(--v2);padding:5px 8px;margin-bottom:6px;background:#0f0f1a;border-radius:4px}
+  .lead .h{display:flex;justify-content:space-between;gap:8px}
+  .lead .why{color:var(--mut);font-size:11px;margin-top:2px}
+  .sev-critical{color:var(--crit)} .sev-high{color:#fb7185} .sev-medium{color:var(--med)}
+  .foot{color:var(--mut);padding:0 16px 16px;font-size:11px}
+  .empty{color:var(--mut);font-style:italic}
+
+  /* ── added interactivity & physics — same palette, same layout, details layered on each element ── */
+  .mark{background-size:220% 100%;animation:sheen 7s linear infinite}
+  @keyframes sheen{0%{background-position:0% 50%}100%{background-position:220% 50%}}
+
+  .pill{position:relative;overflow:hidden;transition:color .2s,border-color .2s,transform .2s}
+  .pill b{font-variant-numeric:tabular-nums}
+  .pill.bump{animation:bump .5s ease}
+  @keyframes bump{0%{transform:scale(1)}28%{transform:scale(1.14);border-color:var(--crit)}100%{transform:scale(1)}}
+
+  .card{transition:transform .25s cubic-bezier(.2,.7,.2,1),box-shadow .25s;transform-style:preserve-3d;will-change:transform}
+  .card:hover{box-shadow:0 12px 34px rgba(0,0,0,.4),inset 0 0 0 1px rgba(99,102,241,.5)}
+  .card.enter{animation:cardin .5s cubic-bezier(.2,.8,.2,1) both}
+  @keyframes cardin{from{opacity:0;transform:translateY(12px) scale(.985)}to{opacity:1;transform:none}}
+
+  .feed div{transition:transform .15s,border-color .2s,background .2s;cursor:default}
+  .feed div.spawn{animation:feedin .36s cubic-bezier(.2,.9,.2,1) both}
+  @keyframes feedin{from{opacity:0;transform:translateY(-10px) scale(.98)}to{opacity:1;transform:none}}
+  .feed div:hover{transform:translateX(3px)}
+  .feed div.open .t:last-child{white-space:normal}
+  .feed div.pulse{animation:critpulse 1s ease}
+  @keyframes critpulse{0%{box-shadow:0 0 0 0 rgba(244,63,94,.5)}100%{box-shadow:0 0 0 16px rgba(244,63,94,0)}}
+
+  #pol tbody tr{transition:background .15s}
+  #pol tbody tr:hover{background:rgba(139,92,246,.09)}
+  .ratio{height:4px;border-radius:3px;margin-top:4px;background:var(--panel2);display:flex;overflow:hidden}
+  .ratio i{display:block;height:100%;width:0;transition:width .6s cubic-bezier(.2,.8,.2,1)}
+  .ratio .a{background:var(--ok)} .ratio .d{background:var(--v2)} .ratio .v{background:var(--crit)}
+
+  .prin .p{transition:transform .12s,box-shadow .2s,border-color .2s;cursor:grab;touch-action:none;user-select:none}
+  .prin .p:hover{transform:translateY(-2px);border-color:var(--v1);box-shadow:0 8px 20px rgba(0,0,0,.4)}
+  .prin .p.grab{cursor:grabbing;z-index:6;border-color:var(--v3);box-shadow:0 16px 34px rgba(0,0,0,.5)}
+  .prin .hint{color:var(--mut);font-size:10px;opacity:.6;width:100%;margin-top:2px}
+
+  .lead{position:relative;overflow:hidden;transition:transform .14s,border-color .2s,background .2s}
+  .lead:hover{transform:translateX(3px);border-color:var(--v1)}
+  .lead.spawn{animation:leadin .4s cubic-bezier(.2,.8,.2,1) both}
+  @keyframes leadin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .cp{cursor:pointer;color:var(--v3);border:1px solid var(--edge);border-radius:5px;padding:0 6px;font-size:10px;margin-left:6px}
+  .cp:hover{border-color:var(--v3)} .cp.done{color:var(--ok);border-color:var(--ok)}
+
+  .rip{position:absolute;width:12px;height:12px;border-radius:50%;pointer-events:none;
+    background:radial-gradient(circle,rgba(139,92,246,.5),transparent 70%);transform:translate(-50%,-50%) scale(0);animation:rip .5s ease-out forwards}
+  @keyframes rip{to{transform:translate(-50%,-50%) scale(9);opacity:0}}
+
+  @media(prefers-reduced-motion:reduce){
+    .mark{animation:none}
+    .card,.feed div,.lead,.prin .p,.pill{transition:none!important}
+    .card.enter,.feed div.spawn,.lead.spawn,.pill.bump,.feed div.pulse,.rip{animation:none!important}
+  }
+</style>
+</head>
+<body>
+<header>
+  <span class="mark">◈ IOLITE LIVE</span>
+  <span class="pill">host <b id="host">—</b></span>
+  <span class="pill">scope <b id="scope">—</b></span>
+  <span class="pill">exchanges <b id="ex">0</b></span>
+  <span class="pill">confirmed <b id="conf" style="color:var(--crit)">0</b></span>
+  <span class="pill">WAF <b id="vendor">—</b></span>
+  <span class="pill">safe rate <b id="rate">—</b>/s</span>
+  <span class="pill">blocks <b id="blocks">0</b></span>
+</header>
+<div class="wrap">
+  <section class="card"><h2>Live feed — confirmations · boundaries · defences</h2>
+    <div class="body feed" id="feed"><div class="empty">waiting for traffic… paste the hook snippet in each account's console and browse.</div></div></section>
+  <section class="card"><h2>Learned authorization policy (by contrast)</h2>
+    <div class="body"><table id="pol"><thead><tr><th>type</th><th>intent</th><th>enforced</th><th>conf</th><th>allow/deny/viol</th></tr></thead><tbody></tbody></table></div></section>
+  <section class="card"><h2>Principals &amp; ownership</h2>
+    <div class="body"><div class="prin" id="prin"></div>
+      <h2 style="margin-top:10px;border:0;background:none;padding:8px 0 4px">confirmed cross-account exposures</h2>
+      <div id="confs"><div class="empty">none yet</div></div></div></section>
+</div>
+<div class="wrap" style="grid-template-columns:1fr">
+  <section class="card"><h2>EV-ranked leads (scanner-blind families) — exact probe + why intent forbids it</h2>
+    <div class="body" id="leads"><div class="empty">computing…</div></div></section>
+</div>
+<div class="foot">Passive · own accounts only · in scope. The tool crafts nothing; this page reads your local session. Dossier: <a href="/dossier">/dossier</a></div>
+<script>
+'use strict';
+const $=id=>document.getElementById(id);
+const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+let evseq=0;
+let DEMO=false;
+function esc(s){return String(s==null?'':s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
+
+/* data access — identical contract to live collector; in DEMO it is fed by the in-page simulator
+   so the exact same render code fills the exact same elements when opened without a collector. */
+async function j(u){
+  if(DEMO) return SIM.route(u);
+  try{const r=await fetch(u);return await r.json();}catch(e){return null;}
+}
+
+/* ---------- interactivity helpers (physics + motion) ---------- */
+function countUp(el,to){
+  to=+to||0; const from=+(el.dataset.v||0);
+  if(RM||from===to){el.textContent=to;el.dataset.v=to;return;}
+  el.dataset.v=to; const t0=performance.now(),dur=520;
+  (function fr(t){const k=Math.min(1,((t||performance.now())-t0)/dur);const e=1-Math.pow(1-k,3);
+    el.textContent=Math.round(from+(to-from)*e); if(k<1)requestAnimationFrame(fr);})();
+}
+function bump(id){const p=$(id).closest('.pill');if(!p)return;p.classList.remove('bump');void p.offsetWidth;p.classList.add('bump');}
+
+function ripple(e){
+  const host=e.target.closest('.pill,.lead'); if(!host)return;
+  const r=host.getBoundingClientRect(); const s=document.createElement('span'); s.className='rip';
+  s.style.left=(e.clientX-r.left)+'px'; s.style.top=(e.clientY-r.top)+'px';
+  host.appendChild(s); setTimeout(()=>s.remove(),500);
+}
+
+function cardTilt(){
+  if(RM)return;
+  document.querySelectorAll('.card').forEach(card=>{
+    card.addEventListener('pointermove',e=>{
+      if(drag)return; const r=card.getBoundingClientRect();
+      const px=(e.clientX-r.left)/r.width-0.5, py=(e.clientY-r.top)/r.height-0.5;
+      card.style.transform='perspective(900px) rotateX('+(-py*3).toFixed(2)+'deg) rotateY('+(px*3).toFixed(2)+'deg) translateY(-2px)';
+    });
+    card.addEventListener('pointerleave',()=>{card.style.transform='';});
+  });
+}
+
+/* draggable + fling-back principal chips (physics on the existing chips, nothing replaced) */
+let drag=null;
+function flingHome(d){
+  const el=d.el;
+  if(RM){el.style.transform='';return;}
+  let x=d.ox,y=d.oy,vx=d.vx*0.6,vy=d.vy*0.6; const k=0.14,damp=0.82;
+  (function fr(){vx+=(-x)*k;vy+=(-y)*k;vx*=damp;vy*=damp;x+=vx;y+=vy;
+    el.style.transform='translate('+x.toFixed(1)+'px,'+y.toFixed(1)+'px) rotate('+(x*0.03).toFixed(2)+'deg)';
+    if(Math.abs(x)+Math.abs(y)+Math.abs(vx)+Math.abs(vy)>0.5)requestAnimationFrame(fr);else el.style.transform='';})();
+}
+function wireDrag(){
+  const prin=$('prin');
+  prin.addEventListener('pointerdown',e=>{
+    const p=e.target.closest('.p'); if(!p)return; e.preventDefault();
+    drag={el:p,sx:e.clientX,sy:e.clientY,ox:0,oy:0,vx:0,vy:0,lx:e.clientX,ly:e.clientY};
+    p.classList.add('grab'); try{p.setPointerCapture(e.pointerId);}catch(_){}
+  });
+  window.addEventListener('pointermove',e=>{
+    if(!drag)return; drag.ox=e.clientX-drag.sx; drag.oy=e.clientY-drag.sy;
+    drag.vx=e.clientX-drag.lx; drag.vy=e.clientY-drag.ly; drag.lx=e.clientX; drag.ly=e.clientY;
+    drag.el.style.transform='translate('+drag.ox+'px,'+drag.oy+'px) rotate('+(drag.ox*0.03).toFixed(2)+'deg)';
+  });
+  window.addEventListener('pointerup',()=>{if(!drag)return;const d=drag;drag=null;d.el.classList.remove('grab');flingHome(d);});
+}
+
+/* ---------- render (v1.22 logic, with numbers animated + rows spawning) ---------- */
+let last={pol:'',prin:'',confs:'',leads:''};
+
+async function tick(){
+  const st=await j('/status');
+  if(st){
+    $('host').textContent=(st.defense&&st.defense.host)||'—';
+    $('scope').textContent=(st.scope||[]).join(', ')||'(all)';
+    countUp($('ex'),st.exchanges);
+    const prev=+($('conf').dataset.v||0);
+    countUp($('conf'),st.corroborated);
+    if((st.corroborated||0)>prev)bump('conf');
+    const d=st.defense||{};
+    $('vendor').textContent=d.vendor||'none';
+    $('rate').textContent=d.safe_rate!=null?d.safe_rate:'—';
+    countUp($('blocks'),d.blocks||0);
+  }
+  const ev=await j('/events?since='+evseq);
+  if(ev&&ev.events){
+    const f=$('feed'); if(ev.events.length&&f.querySelector('.empty'))f.innerHTML='';
+    for(const e of ev.events){
+      const row=document.createElement('div'); row.className=e.kind+' spawn';
+      row.innerHTML='<span class="t">#'+e.seq+'</span> '+esc(e.title)+(e.detail?'<div class="t">'+esc(e.detail)+'</div>':'');
+      if(e.kind==='corroborated')row.classList.add('pulse');
+      f.prepend(row);
+    }
+    evseq=ev.next||evseq;
+    while(f.children.length>200)f.removeChild(f.lastChild);
+  }
+  const pol=await j('/policy');
+  if(pol&&pol.object_types){
+    const key=JSON.stringify(pol.object_types);
+    if(key!==last.pol){ last.pol=key; const tb=$('pol').querySelector('tbody'); tb.innerHTML='';
+      for(const [t,p] of Object.entries(pol.object_types)){
+        const tot=Math.max(1,(p.owner_allow||0)+(p.nonowner_deny||0)+(p.violations||0));
+        const bar='<div class="ratio"><i class="a" style="width:'+(100*(p.owner_allow||0)/tot)+'%"></i>'+
+          '<i class="d" style="width:'+(100*(p.nonowner_deny||0)/tot)+'%"></i>'+
+          '<i class="v" style="width:'+(100*(p.violations||0)/tot)+'%"></i></div>';
+        const tr=document.createElement('tr');
+        tr.innerHTML='<td>'+esc(t)+'</td><td class="'+p.intent+'">'+p.intent+'</td>'+
+          '<td class="'+(p.enforced?'yes':'no')+'">'+(p.enforced?'yes':'—')+'</td><td>'+p.confidence+'</td>'+
+          '<td>'+p.owner_allow+'/'+p.nonowner_deny+'/'+p.violations+bar+'</td>';
+        tb.appendChild(tr);
+      }
+    }
+  }
+  const g=await j('/graph');
+  if(g){
+    const pkey=JSON.stringify(g.principals||[]);
+    if(pkey!==last.prin && !drag){ last.prin=pkey; const pr=$('prin');
+      pr.innerHTML=((g.principals||[]).map(p=>'<div class="p"><b>'+esc(p.pid)+'</b>'+
+        '<span>role: '+(esc(p.role)||'—')+'</span><span>tenant: '+(esc(p.tenant)||'—')+'</span>'+
+        '<span>owns: '+p.owns+'</span></div>').join('')||'<span class="empty">none</span>')+
+        '<span class="hint">drag a principal — it springs back</span>';
+    }
+    const ckey=JSON.stringify(g.confirmations||[]);
+    if(ckey!==last.confs){ last.confs=ckey; const cf=$('confs');
+      cf.innerHTML=(g.confirmations||[]).map(c=>'<div class="lead spawn"><span class="sev-'+c.severity+'">●</span> '+
+        esc(c.attacker)+' → '+esc(c.owner)+' · <b>'+esc(c.object)+'</b> <span class="t">('+c.family+')</span></div>').join('')
+        ||'<div class="empty">none yet</div>';
+    }
+  }
+}
+
+async function snap(){
+  const s=await j('/snapshot'); if(!s)return; const L=$('leads');
+  if(!s.leads||!s.leads.length){L.innerHTML='<div class="empty">no leads yet — browse more, and try opening another account\'s object</div>';return;}
+  const key=JSON.stringify(s.leads); if(key===last.leads)return; last.leads=key;
+  L.innerHTML=s.leads.map(c=>'<div class="lead spawn"><div class="h"><span><b class="sev-'+c.severity+'">'+esc(c.family)+'</b> '+
+    esc(c.method)+' '+esc(c.path)+' <span class="t">['+esc(c.attacker)+'→denied]</span>'+
+    '<span class="cp" data-probe="'+esc(c.method)+' '+esc(c.path)+'">copy probe</span></span><span class="t">$'+c.payout+'</span></div>'+
+    '<div class="why">∵ '+esc(c.derivation)+'</div></div>').join('');
+}
+
+/* copy-probe (added detail on each lead) */
+document.addEventListener('click',e=>{
+  const cp=e.target.closest('.cp'); if(!cp)return; e.stopPropagation();
+  const txt=cp.getAttribute('data-probe')||'';
+  const done=()=>{cp.classList.add('done');const o=cp.textContent;cp.textContent='copied';setTimeout(()=>{cp.textContent=o;cp.classList.remove('done');},1100);};
+  try{ if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(done,done);} else {done();} }catch(_){done();}
+});
+/* click a feed row to expand its detail */
+document.addEventListener('click',e=>{const r=e.target.closest('.feed > div');if(r)r.classList.toggle('open');});
+
+document.addEventListener('pointerdown',ripple,true);
+
+/* ---------- in-page demo stream: alive the instant you open the file (fixes empty-on-open) ---------- */
+const SIM=(function(){
+  const host='api.shopdemo.io';
+  const types=['vault','order','invoice','profile'];
+  const intent={vault:'owner_scoped',order:'owner_scoped',invoice:'tenant_isolated',profile:'role_restricted'};
+  const princ={
+    alice:{pid:'alice',role:'user',tenant:'t1',owns:0},
+    bob:{pid:'bob',role:'user',tenant:'t1',owns:0},
+    carol:{pid:'carol',role:'user',tenant:'t2',owns:0},
+    root:{pid:'root',role:'admin',tenant:'t1',owns:0}
+  };
+  const owners=['alice','bob','carol','root'];
+  const fams=['read_bola','action_bola','bopla_field','rebinding','workflow_state','chained','tenant','vertical'];
+  const pol={}; types.forEach(t=>pol[t]={intent:intent[t],enforced:true,confidence:0.6,owner_allow:0,nonowner_deny:0,violations:0});
+  let ex=0,corrob=0,blocks=0,safe=8,seq=0,vendor='none',oid=1000;
+  const events=[],confs=[],objects=[],leads=[];
+  const R=a=>a[Math.floor(Math.random()*a.length)];
+  function push(kind,title,detail){events.push({seq:++seq,kind,title,detail:detail||''});if(events.length>250)events.shift();}
+  function rebuildLeads(){
+    leads.length=0;
+    objects.slice(-8).forEach((ob,i)=>{
+      const fam=fams[i%fams.length];
+      leads.push({family:fam,method:(fam.indexOf('action')>=0?'POST':'GET'),
+        path:'/api/'+ob.type+'/'+ob.id+(fam==='bopla_field'?' {role}':''),
+        attacker:R(owners.filter(x=>x!==ob.owner)),payout:[500,750,1200,2500,4000][i%5],
+        severity:(i%4===0?'critical':(i%3===0?'high':'medium')),
+        derivation:'owner ALLOW vs non-owner DENY on '+ob.type+' ⇒ '+intent[ob.type]+' boundary; '+fam+' bypasses it'});
+    });
+    leads.sort((a,b)=>b.payout-a.payout);
+  }
+  function step(){
+    const roll=Math.random();
+    if(roll<0.34||objects.length<3){
+      const o=R(owners),t=R(types),id=++oid;
+      objects.push({id,owner:o,type:t}); princ[o].owns++; ex++; pol[t].owner_allow++;
+      push('enforcement_denial',o+' created '+t+' #'+id,'owner 2xx · private value set');
+    }else if(roll<0.58){
+      const ob=R(objects),a=R(owners.filter(x=>x!==ob.owner));
+      ex++; pol[ob.type].nonowner_deny++; pol[ob.type].confidence=Math.min(0.99,+(pol[ob.type].confidence+0.03).toFixed(2));
+      push('boundary_learned',a+" denied on "+ob.owner+"'s "+ob.type+' #'+ob.id,'403 · enforced boundary learned');
+    }else if(roll<0.72){
+      blocks++;
+      if(Math.random()<0.5){safe=Math.max(2,+(safe*0.5).toFixed(1));vendor=R(['cloudflare','akamai','aws-waf']);push('defense','WAF_BLOCK ('+vendor+') — backing off','request-specific wall · not a boundary');}
+      else{safe=Math.max(2,+(safe*0.6).toFixed(1));push('defense','RATE_LIMITED 429 — honor Retry-After','pace block · full AIMD backoff');}
+    }else if(roll<0.82){
+      safe=Math.min(20,+(safe+0.6).toFixed(1));
+    }else if(roll<0.92){
+      const ob=R(objects); push('enumeration_leak','sequential id leak near '+ob.type+' #'+ob.id,'adjacent ids enumerable');
+    }else{
+      const ob=R(objects),a=R(owners.filter(x=>x!==ob.owner));
+      corrob++; pol[ob.type].violations++; pol[ob.type].enforced=false;
+      confs.push({attacker:a,owner:ob.owner,object:ob.type+' #'+ob.id,family:'read_bola',severity:(Math.random()<0.5?'critical':'high')});
+      if(confs.length>40)confs.shift();
+      push('corroborated','CONFIRMED: '+a+" read "+ob.owner+"'s "+ob.type+' #'+ob.id,'non-owner reproduced private value on 2xx');
+    }
+    rebuildLeads();
+  }
+  for(let i=0;i<9;i++)step();
+  function route(u){
+    if(u.indexOf('/status')===0)return{scope:[host],exchanges:ex,corroborated:corrob,defense:{host,vendor,safe_rate:safe,blocks}};
+    if(u.indexOf('/events')===0){const since=+(u.split('since=')[1]||0);return{events:events.filter(e=>e.seq>since),next:seq};}
+    if(u.indexOf('/policy')===0){const ot={};for(const t of types){const p=pol[t];ot[t]={intent:p.intent,enforced:p.enforced,confidence:p.confidence,owner_allow:p.owner_allow,nonowner_deny:p.nonowner_deny,violations:p.violations};}return{object_types:ot};}
+    if(u.indexOf('/graph')===0)return{principals:owners.map(o=>({pid:princ[o].pid,role:princ[o].role,tenant:princ[o].tenant,owns:princ[o].owns})),confirmations:confs.slice(-12)};
+    if(u.indexOf('/snapshot')===0){const by={};leads.forEach(l=>by[l.family]=(by[l.family]||0)+1);return{leads:leads.slice(0,12),by_family:by};}
+    return null;
+  }
+  return{route,step};
+})();
+
+/* ---------- init ---------- */
+cardTilt(); wireDrag();
+document.querySelectorAll('.card').forEach((c,i)=>{c.style.animationDelay=(i*70)+'ms';c.classList.add('enter');});
+(async function init(){
+  const probe=await (async()=>{try{const r=await fetch('/status');if(!r.ok)return null;return await r.json();}catch(e){return null;}})();
+  if(!probe)DEMO=true;
+  tick(); snap();
+  setInterval(()=>{if(DEMO)SIM.step();tick();},1200);
+  setInterval(snap,4000);
+})();
+</script>
+</body>
+</html>

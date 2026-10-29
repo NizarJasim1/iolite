@@ -1,0 +1,20 @@
+WALL-3 FAIR BENCHMARK (real-distribution; write-side authz)
+==========================================================================================
+  update_field     write-BOLA (action-level)        verdict=FINDING  truth=VULN_FINDABLE      -> TP
+  set_role         BOPLA-write (mass-assignment)    verdict=FINDING  truth=VULN_FINDABLE      -> TP
+  change_owner     object-rebinding                 verdict=FINDING  truth=VULN_FINDABLE      -> TP
+  soft_delete      delete-BOLA (reversible)         verdict=FINDING  truth=VULN_FINDABLE      -> TP
+  hard_delete      delete-BOLA (irreversible)       verdict=REFUSED  truth=VULN_REFUSE_SAFETY -> REFUSED-safely
+  advance_workflow workflow-context write (state-gated) verdict=CLEAN    truth=VULN_MISS_BYDESIGN -> miss-by-design (honest FN)
+  notify           external-effect trigger          verdict=REFUSED  truth=VULN_REFUSE_SAFETY -> REFUSED-safely
+  update_secure    secure update (owner-only)       verdict=CLEAN    truth=SECURE             -> TN
+  update_noop      decoy: 200 but no persist        verdict=CLEAN    truth=DECOY              -> TN
+  update_shared    decoy: shared-default value      verdict=CLEAN    truth=DECOY              -> TN
+------------------------------------------------------------------------------------------
+  TP=4 FP=0 TN=3 FN(findable)=0 refused-for-safety=2
+  PRECISION = 1.000   (false positives on secure+decoys must be 0 -> FP=0)
+  RECALL (on findable subset) = 1.000
+  SAFETY: external effects during whole run = 0 (must be 0); test objects left = [] 
+==========================================================================================
+PASS: precision 1.000, all 4 findable write-authz classes caught, unsafe ops
+      refused, by-design miss acknowledged, zero harm, zero litter.

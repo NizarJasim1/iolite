@@ -1,0 +1,29 @@
+{
+  "data": {
+    "__schema": {
+      "queryType": { "name": "Query" },
+      "mutationType": { "name": "Mutation" },
+      "types": [
+        {
+          "kind": "OBJECT",
+          "name": "Query",
+          "fields": [
+            { "name": "user", "args": [{ "name": "id" }], "type": { "kind": "OBJECT", "name": "User" } },
+            { "name": "order", "args": [{ "name": "id" }], "type": { "kind": "OBJECT", "name": "Order" } },
+            { "name": "orders", "args": [], "type": { "kind": "LIST", "ofType": { "kind": "OBJECT", "name": "Order" } } }
+          ]
+        },
+        {
+          "kind": "OBJECT",
+          "name": "Mutation",
+          "fields": [
+            { "name": "updateUserRole", "args": [{ "name": "userId" }, { "name": "role" }], "type": { "kind": "OBJECT", "name": "User" } },
+            { "name": "refundOrder", "args": [{ "name": "orderId" }, { "name": "amount" }], "type": { "kind": "OBJECT", "name": "Order" } }
+          ]
+        },
+        { "kind": "OBJECT", "name": "User", "fields": [] },
+        { "kind": "OBJECT", "name": "Order", "fields": [] }
+      ]
+    }
+  }
+}

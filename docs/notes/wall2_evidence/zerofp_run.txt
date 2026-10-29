@@ -1,0 +1,21 @@
+WALL-2 ZERO-FP + WIDENED DETECTION (propose widely, dispose through one sound gate)
+======================================================================================
+
+[NARROW (single-step only)]
+   findings(TP)=1  FALSE-POSITIVES=0  recall(on proposable bugs)=100%  drops=1 abstains=4 leads=1
+     FINDING: B1 single-step BOLA  (BUG)
+
+[WIDE (single+chained+cross-surface+state-gated)]
+   findings(TP)=4  FALSE-POSITIVES=0  recall(on proposable bugs)=100%  drops=1 abstains=4 leads=1
+     FINDING: B1 single-step BOLA  (BUG)
+     FINDING: B2 chained multi-step  (BUG)
+     FINDING: B3 cross-surface  (BUG)
+     FINDING: B4 state-gated write  (BUG)
+
+[continuous decoy stream] n=60  measured FALSE-POSITIVES = 0
+
+[sample replayable certificate] {'case': 'B1 single-step BOLA', 'proof': 'before≠after under owner read-back', 'control_differential': 'no-relationship control also admitted / none', 'stability': 'quorum met on both draws', 'discriminating': True, 'refuted_benign': ['relationship-not-the-cause'], 'replayable': True}
+======================================================================================
+PROVEN: FP = 0 (measured on 66 decoys incl. flaky/observer/unreproducible);
+        detection WIDENED 1 → 4 real bugs (narrow→wide) at FP=0 — recall up, error killed.
+        Invariant: generators only PROPOSE; the one certifying gate DISPOSES -> FP can't grow.

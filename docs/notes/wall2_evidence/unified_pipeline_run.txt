@@ -1,0 +1,12 @@
+UNIFIED INTENT KILL-CHAIN — all four walls as one pipeline
+================================================================================
+  GENERATE: 60 raw candidates (wide: all generators)
+  REDUCE  : -> 11 equivalence representatives (quotient)
+  SCHEDULE: 11 confirmed under budget, 0 ranked leads
+  CONFIRM+CERTIFY: 6 findings across 6 classes; 1 refused-for-safety
+  classes found : ['BOPLA-write', 'chained', 'cross-surface', 'delete-BOLA', 'read-BOLA', 'write-BOLA']
+  FALSE POSITIVES: 0   |   write findings net-zero-restored: True
+  REPORT  : EV-ranked dossiers, total est. $8,700 ; sample cert: {'class': 'read-BOLA', 'coord': ('user', 'vault', 'priv'), 'proof': 'owner read-back before≠after', 'causal': 'no-relationship control differential passed', 'write_safe': True, 'replayable': True}
+================================================================================
+PROVEN: one pipeline, one run -> 6 bug classes caught (WIDE), FP=0 (certify gate),
+        irreversible write REFUSED (safe), writes net-zero, quotient reduced raw 60->11. Every wall's guarantee preserved; nothing weakened.

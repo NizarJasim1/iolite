@@ -1,0 +1,17 @@
+cff-version: 1.2.0
+message: "If you use IOLITE in research or a report, please cite it."
+title: "IOLITE: legal authorization-surface acquisition for web APIs"
+type: software
+authors:
+  - given-names: Nizar Jasim Mohammed
+    family-names: Al-Zubaidi
+version: 1.29.0
+date-released: 2026-10-29
+license: PolyForm-Noncommercial-1.0.0
+repository-code: https://github.com/NizarJasim1/iolite
+keywords:
+  - authorization
+  - attack surface
+  - reconnaissance
+  - API security
+  - security testing

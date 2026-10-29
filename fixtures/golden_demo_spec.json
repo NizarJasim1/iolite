@@ -1,0 +1,493 @@
+{
+  "_engagement": {
+    "allow_destructive": false,
+    "attested": true,
+    "authorized_by": "in-repo fixtures (self-authored, always authorised)",
+    "automation_permitted": true,
+    "dry_run": true,
+    "operator": "demo",
+    "own_accounts_only": true,
+    "program": "IOLITE self-demo (fixtures)"
+  },
+  "_iolite": {
+    "contract_meta": {
+      "GET /api/v1/orders/{id}": {
+        "confidence": "high",
+        "risk": 21,
+        "tier": "T1_LIVE"
+      },
+      "GET /api/v1/users/{id}/profile": {
+        "confidence": "high",
+        "risk": 25,
+        "tier": "T1_LIVE"
+      },
+      "GET /api/v1/vehicles/{id}/location": {
+        "confidence": "high",
+        "risk": 19,
+        "tier": "T1_LIVE"
+      }
+    },
+    "contract_probeable": 3,
+    "endpoints_total": 19,
+    "ghost_endpoints": [
+      "GET /api/v0/orders/{id}",
+      "GET /api/v1/internal/export/{id}"
+    ],
+    "leads": [
+      {
+        "activation": "request it once as one of your accounts to confirm it is live, then re-run",
+        "confidence": "low",
+        "effect": "OBJECT_ACCESS",
+        "endpoint": "GET /api/v1/internal/export/{id}",
+        "reason": "archived-only ghost \u2014 removed from current UI, may still be live",
+        "risk": 25,
+        "tier": "T3_ARCHIVED"
+      },
+      {
+        "activation": "capture an authenticated request to this endpoint with one of your accounts, then re-run",
+        "confidence": "medium",
+        "effect": "AUTHORITY",
+        "endpoint": "DELETE /api/v1/admin/orders/{id}",
+        "reason": "declared/mined, but no concrete id observed and no controlled principal reached it",
+        "risk": 23,
+        "tier": "T2_CAPTURED"
+      },
+      {
+        "activation": "capture an authenticated request to this endpoint with one of your accounts, then re-run",
+        "confidence": "medium",
+        "effect": "AUTHORITY",
+        "endpoint": "PUT /api/v1/admin/users/{id}/role",
+        "reason": "declared/mined, but no concrete id observed and no controlled principal reached it",
+        "risk": 23,
+        "tier": "T2_CAPTURED"
+      },
+      {
+        "activation": "capture an authenticated request to this endpoint with one of your accounts, then re-run",
+        "confidence": "medium",
+        "effect": "OBJECT_ACCESS",
+        "endpoint": "GET /api/v1/admin/reports/{id}",
+        "reason": "declared/mined, but no concrete id observed and no controlled principal reached it",
+        "risk": 22,
+        "tier": "T2_CAPTURED"
+      },
+      {
+        "activation": "request it once as one of your accounts to confirm it is live, then re-run",
+        "confidence": "low",
+        "effect": "OBJECT_ACCESS",
+        "endpoint": "GET /api/v0/orders/{id}",
+        "reason": "archived-only ghost \u2014 removed from current UI, may still be live",
+        "risk": 19,
+        "tier": "T3_ARCHIVED"
+      },
+      {
+        "activation": "capture an authenticated request to this endpoint with one of your accounts, then re-run",
+        "confidence": "medium",
+        "effect": "STATE_GATE",
+        "endpoint": "PUT /api/v1/users/{id}/profile",
+        "reason": "declared/mined, but no concrete id observed and no controlled principal reached it",
+        "risk": 11,
+        "tier": "T2_CAPTURED"
+      },
+      {
+        "activation": "capture an authenticated request to this endpoint with one of your accounts, then re-run",
+        "confidence": "medium",
+        "effect": "PAYMENT",
+        "endpoint": "MUTATION refundOrder",
+        "reason": "declared/mined, but no concrete id observed and no controlled principal reached it",
+        "risk": 8,
+        "tier": "T2_CAPTURED"
+      },
+      {
+        "activation": "capture an authenticated request to this endpoint with one of your accounts, then re-run",
+        "confidence": "medium",
+        "effect": "AUTHORITY_GRANT",
+        "endpoint": "MUTATION updateUserRole",
+        "reason": "declared/mined, but no concrete id observed and no controlled principal reached it",
+        "risk": 8,
+        "tier": "T2_CAPTURED"
+      },
+      {
+        "activation": "capture an authenticated request to this endpoint with one of your accounts, then re-run",
+        "confidence": "medium",
+        "effect": "FIELD_PROJECTION",
+        "endpoint": "QUERY orders",
+        "reason": "declared/mined, but no concrete id observed and no controlled principal reached it",
+        "risk": 6,
+        "tier": "T2_CAPTURED"
+      },
+      {
+        "activation": "capture an authenticated request to this endpoint with one of your accounts, then re-run",
+        "confidence": "medium",
+        "effect": "STATE_GATE",
+        "endpoint": "POST /api/v1/orders/{id}/refund",
+        "reason": "declared/mined, but no concrete id observed and no controlled principal reached it",
+        "risk": 2,
+        "tier": "T2_CAPTURED"
+      },
+      {
+        "activation": "capture an authenticated request to this endpoint with one of your accounts, then re-run",
+        "confidence": "medium",
+        "effect": "STATE_GATE",
+        "endpoint": "POST /api/v1/payments/{id}/settle",
+        "reason": "declared/mined, but no concrete id observed and no controlled principal reached it",
+        "risk": 2,
+        "tier": "T2_CAPTURED"
+      },
+      {
+        "activation": "capture an authenticated request to this endpoint with one of your accounts, then re-run",
+        "confidence": "medium",
+        "effect": "OBJECT_ACCESS",
+        "endpoint": "QUERY order",
+        "reason": "declared/mined, but no concrete id observed and no controlled principal reached it",
+        "risk": 2,
+        "tier": "T2_CAPTURED"
+      },
+      {
+        "activation": "capture an authenticated request to this endpoint with one of your accounts, then re-run",
+        "confidence": "medium",
+        "effect": "OBJECT_ACCESS",
+        "endpoint": "QUERY user",
+        "reason": "declared/mined, but no concrete id observed and no controlled principal reached it",
+        "risk": 2,
+        "tier": "T2_CAPTURED"
+      },
+      {
+        "activation": "capture an authenticated request to this endpoint with one of your accounts, then re-run",
+        "confidence": "medium",
+        "effect": "STATE_GATE",
+        "endpoint": "POST /api/graphql",
+        "reason": "declared/mined, but no concrete id observed and no controlled principal reached it",
+        "risk": 0,
+        "tier": "T2_CAPTURED"
+      },
+      {
+        "activation": "capture an authenticated request to this endpoint with one of your accounts, then re-run",
+        "confidence": "medium",
+        "effect": "STATE_GATE",
+        "endpoint": "POST /api/v1/coupons/{id}/redeem",
+        "reason": "declared/mined, but no concrete id observed and no controlled principal reached it",
+        "risk": 0,
+        "tier": "T2_CAPTURED"
+      }
+    ],
+    "note": "contract = endpoints the plan can actually exercise; everything else is a lead needing acquisition. Every finding is still decided by ONYX \u0394state confirmation (QL5).",
+    "probe_families": {
+      "horizontal": 6,
+      "vertical": 0
+    },
+    "tool": "IOLITE",
+    "top_candidates": [
+      {
+        "effect": "OBJECT_ACCESS",
+        "endpoint": "GET /api/v1/internal/export/{id}",
+        "probeable": false,
+        "reasons": [
+          "+10 object-addressed GET (BOLA surface)",
+          "+8 privilege/admin hint (BFLA)",
+          "+7 ghost endpoint (archived-only \u2014 authz may have rotted)"
+        ],
+        "risk": 25
+      },
+      {
+        "effect": "OBJECT_ACCESS",
+        "endpoint": "GET /api/v1/users/{id}/profile",
+        "probeable": true,
+        "reasons": [
+          "+10 object-addressed GET (BOLA surface)",
+          "+6 enumerable id (sequential)",
+          "+6 sensitive noun (file,profile,user)",
+          "+3 observed live (real ids available to thread)"
+        ],
+        "risk": 25
+      },
+      {
+        "effect": "AUTHORITY",
+        "endpoint": "DELETE /api/v1/admin/orders/{id}",
+        "probeable": false,
+        "reasons": [
+          "+8 privilege/admin hint (BFLA)",
+          "+5 mutating verb on addressed object",
+          "+6 value/authority effect (AUTHORITY)",
+          "+4 sensitive noun (admin,order)"
+        ],
+        "risk": 23
+      },
+      {
+        "effect": "AUTHORITY",
+        "endpoint": "PUT /api/v1/admin/users/{id}/role",
+        "probeable": false,
+        "reasons": [
+          "+8 privilege/admin hint (BFLA)",
+          "+5 mutating verb on addressed object",
+          "+6 value/authority effect (AUTHORITY)",
+          "+4 sensitive noun (admin,user)"
+        ],
+        "risk": 23
+      },
+      {
+        "effect": "OBJECT_ACCESS",
+        "endpoint": "GET /api/v1/admin/reports/{id}",
+        "probeable": false,
+        "reasons": [
+          "+10 object-addressed GET (BOLA surface)",
+          "+8 privilege/admin hint (BFLA)",
+          "+4 sensitive noun (admin,report)"
+        ],
+        "risk": 22
+      },
+      {
+        "effect": "OBJECT_ACCESS",
+        "endpoint": "GET /api/v1/orders/{id}",
+        "probeable": true,
+        "reasons": [
+          "+10 object-addressed GET (BOLA surface)",
+          "+6 enumerable id (sequential)",
+          "+2 sensitive noun (order)",
+          "+3 observed live (real ids available to thread)"
+        ],
+        "risk": 21
+      },
+      {
+        "effect": "OBJECT_ACCESS",
+        "endpoint": "GET /api/v0/orders/{id}",
+        "probeable": false,
+        "reasons": [
+          "+10 object-addressed GET (BOLA surface)",
+          "+7 ghost endpoint (archived-only \u2014 authz may have rotted)",
+          "+2 sensitive noun (order)"
+        ],
+        "risk": 19
+      },
+      {
+        "effect": "OBJECT_ACCESS",
+        "endpoint": "GET /api/v1/vehicles/{id}/location",
+        "probeable": true,
+        "reasons": [
+          "+10 object-addressed GET (BOLA surface)",
+          "+6 enumerable id (sequential)",
+          "+3 observed live (real ids available to thread)"
+        ],
+        "risk": 19
+      },
+      {
+        "effect": "STATE_GATE",
+        "endpoint": "PUT /api/v1/users/{id}/profile",
+        "probeable": false,
+        "reasons": [
+          "+5 mutating verb on addressed object",
+          "+6 sensitive noun (file,profile,user)"
+        ],
+        "risk": 11
+      },
+      {
+        "effect": "PAYMENT",
+        "endpoint": "MUTATION refundOrder",
+        "probeable": false,
+        "reasons": [
+          "+6 value/authority effect (PAYMENT)",
+          "+2 sensitive noun (order)"
+        ],
+        "risk": 8
+      },
+      {
+        "effect": "AUTHORITY_GRANT",
+        "endpoint": "MUTATION updateUserRole",
+        "probeable": false,
+        "reasons": [
+          "+6 value/authority effect (AUTHORITY_GRANT)",
+          "+2 sensitive noun (user)"
+        ],
+        "risk": 8
+      },
+      {
+        "effect": "FIELD_PROJECTION",
+        "endpoint": "QUERY orders",
+        "probeable": false,
+        "reasons": [
+          "+4 field_projection surface",
+          "+2 sensitive noun (order)"
+        ],
+        "risk": 6
+      },
+      {
+        "effect": "NONE",
+        "endpoint": "GET /api/v1/orders",
+        "probeable": false,
+        "reasons": [
+          "+2 sensitive noun (order)"
+        ],
+        "risk": 2
+      },
+      {
+        "effect": "STATE_GATE",
+        "endpoint": "POST /api/v1/orders/{id}/refund",
+        "probeable": false,
+        "reasons": [
+          "+2 sensitive noun (order)"
+        ],
+        "risk": 2
+      },
+      {
+        "effect": "STATE_GATE",
+        "endpoint": "POST /api/v1/payments/{id}/settle",
+        "probeable": false,
+        "reasons": [
+          "+2 sensitive noun (payment)"
+        ],
+        "risk": 2
+      },
+      {
+        "effect": "OBJECT_ACCESS",
+        "endpoint": "QUERY order",
+        "probeable": false,
+        "reasons": [
+          "+2 sensitive noun (order)"
+        ],
+        "risk": 2
+      },
+      {
+        "effect": "OBJECT_ACCESS",
+        "endpoint": "QUERY user",
+        "probeable": false,
+        "reasons": [
+          "+2 sensitive noun (user)"
+        ],
+        "risk": 2
+      }
+    ],
+    "version": "<VERSION>"
+  },
+  "base_url": "https://shop.demo.test",
+  "contract": {
+    "GET /api/v1/orders/{id}": {
+      "effect": "OBJECT_ACCESS"
+    },
+    "GET /api/v1/users/{id}/profile": {
+      "effect": "OBJECT_ACCESS"
+    },
+    "GET /api/v1/vehicles/{id}/location": {
+      "effect": "OBJECT_ACCESS"
+    }
+  },
+  "principals": [
+    {
+      "auth": {
+        "authorization": "$TOKEN_A"
+      },
+      "label": "capture_A",
+      "pid": "A",
+      "profile_headers": {
+        "accept": "application/json",
+        "sec-fetch-site": "same-origin",
+        "user-agent": "Mozilla/5.0 (X11; Linux x86_64) Chrome/126"
+      }
+    },
+    {
+      "auth": {
+        "authorization": "$TOKEN_B"
+      },
+      "label": "capture_B",
+      "pid": "B",
+      "profile_headers": {
+        "accept": "application/json",
+        "user-agent": "Mozilla/5.0 (X11; Linux x86_64) Chrome/126"
+      }
+    }
+  ],
+  "probe": [
+    {
+      "_carrier": "path",
+      "_family": "horizontal",
+      "_object_id": "501",
+      "_replayed_from": "A",
+      "method": "GET",
+      "path": "/api/v1/users/501/profile",
+      "principal": "B"
+    },
+    {
+      "_carrier": "path",
+      "_family": "horizontal",
+      "_object_id": "1001",
+      "_replayed_from": "A",
+      "method": "GET",
+      "path": "/api/v1/orders/1001",
+      "principal": "B"
+    },
+    {
+      "_carrier": "path",
+      "_family": "horizontal",
+      "_object_id": "12",
+      "_replayed_from": "B",
+      "method": "GET",
+      "path": "/api/v1/vehicles/12/location",
+      "principal": "A"
+    },
+    {
+      "_carrier": "path",
+      "_family": "horizontal",
+      "_object_id": "502",
+      "_replayed_from": "B",
+      "method": "GET",
+      "path": "/api/v1/users/502/profile",
+      "principal": "A"
+    },
+    {
+      "_carrier": "path",
+      "_family": "horizontal",
+      "_object_id": "1002",
+      "_replayed_from": "B",
+      "method": "GET",
+      "path": "/api/v1/orders/1002",
+      "principal": "A"
+    },
+    {
+      "_carrier": "path",
+      "_family": "horizontal",
+      "_object_id": "9",
+      "_replayed_from": "A",
+      "method": "GET",
+      "path": "/api/v1/vehicles/9/location",
+      "principal": "B"
+    }
+  ],
+  "scope": {
+    "allow_destructive": false,
+    "allowed_hosts": [
+      "shop.demo.test"
+    ],
+    "automation_permitted": true,
+    "dry_run": true
+  },
+  "seed": [
+    {
+      "method": "GET",
+      "path": "/api/v1/orders/1001",
+      "principal": "A"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/users/501/profile",
+      "principal": "A"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/vehicles/9/location",
+      "principal": "A"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/orders/1002",
+      "principal": "B"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/users/502/profile",
+      "principal": "B"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/vehicles/12/location",
+      "principal": "B"
+    }
+  ]
+}

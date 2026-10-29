@@ -1,0 +1,9 @@
+# IOLITE — runtime dependencies
+#
+# The engine core (acquire → model → triage → emit ONYX spec) uses ONLY the
+# Python standard library and runs FULLY OFFLINE on captured inputs. There is
+# nothing to install to run `iolite demo` or to process HAR/JS/sourcemap files.
+#
+# Optional extras (install only for LIVE work against an authorised target):
+#   requests>=2.31    ; extra == "live"     # passive fetch (CT logs, wayback, JS)
+#   playwright>=1.44  ; extra == "replay"   # record-once, replay-as-N-principals
